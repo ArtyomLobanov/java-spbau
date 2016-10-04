@@ -2,6 +2,8 @@ package ru.spbau.lobanov.collections;
 
 import org.junit.Test;
 
+import java.io.*;
+
 import static org.junit.Assert.*;
 
 /**
@@ -89,24 +91,24 @@ public class HashTrieTest {
 
         assertEquals(0, trie.size());
 
-        String[] list = {"hell", "Hello", "hello", "ewr", "erfd", "ewt", "Ewt"};
-        for (int i = 0; i < list.length; i++) {
-            assertTrue(trie.add(list[i]));
+        String[] dictionary = {"hell", "Hello", "hello", "ewr", "erfd", "ewt", "Ewt"};
+        for (int i = 0; i < dictionary.length; i++) {
+            assertTrue(trie.add(dictionary[i]));
             assertEquals(i + 1, trie.size());
         }
-        for (String s : list) {
+        for (String s : dictionary) {
             assertFalse(trie.add(s));
-            assertEquals(list.length, trie.size());
+            assertEquals(dictionary.length, trie.size());
         }
 
-        assertTrue(trie.remove(list[0]));
-        assertEquals(list.length - 1, trie.size());
-        assertFalse(trie.remove(list[0]));
-        assertEquals(list.length - 1, trie.size());
+        assertTrue(trie.remove(dictionary[0]));
+        assertEquals(dictionary.length - 1, trie.size());
+        assertFalse(trie.remove(dictionary[0]));
+        assertEquals(dictionary.length - 1, trie.size());
 
-        for (int i = 1; i < list.length; i++) {
-            assertTrue(trie.remove(list[i]));
-            assertEquals(list.length - i - 1, trie.size());
+        for (int i = 1; i < dictionary.length; i++) {
+            assertTrue(trie.remove(dictionary[i]));
+            assertEquals(dictionary.length - i - 1, trie.size());
         }
 
         assertEquals(0, trie.size());
@@ -130,5 +132,27 @@ public class HashTrieTest {
         assertEquals(16, trie.howManyStartsWithPrefix("Sorry, i am"));
         assertEquals(9, trie.howManyStartsWithPrefix("Sorry, i am n"));
         assertEquals(0, trie.howManyStartsWithPrefix("sorry, i am n"));
+    }
+
+    @Test
+    public void serialization() throws Exception {
+        String[] dictionary = {"qwertyuiopasdfghjklzxcvbnm", "QWERTYUIOPASDFGHJKLZXCVBNM", "hello", "hell", "help",
+                "abcd", "", "a", "regdfngfj", "yugfdjurhf", "wgrhiwlgrsk"};
+        HashTrie trie = new HashTrie();
+        for (String s : dictionary) {
+            trie.add(s);
+        }
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        trie.serialize(out);
+        InputStream in = new ByteArrayInputStream(out.toByteArray());
+        HashTrie anotherTrie = new HashTrie();
+        anotherTrie.add("strangeWord");
+        anotherTrie.deserialize(in);
+        assertEquals(dictionary.length, anotherTrie.size());
+        for (String s : dictionary) {
+            assertTrue(anotherTrie.contains(s));
+        }
+        assertEquals(trie.howManyStartsWithPrefix("h"), anotherTrie.howManyStartsWithPrefix("h"));
+        assertFalse(anotherTrie.contains("strangeWord"));
     }
 }

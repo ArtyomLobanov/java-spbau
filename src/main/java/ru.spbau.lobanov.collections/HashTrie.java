@@ -2,15 +2,18 @@ package ru.spbau.lobanov.collections;
 
 import com.sun.istack.internal.NotNull;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.*;
 
 /**
  * Created by Артём on 21.09.2016.
  */
 
-public class HashTrie implements Trie {
+public class HashTrie implements Trie, StreamSerializable {
 
-    private final Node root = new Node();
+    private Node root = new Node();
 
     @Override
     public boolean add(@NotNull String element) {
@@ -60,6 +63,36 @@ public class HashTrie implements Trie {
     public int howManyStartsWithPrefix(@NotNull String prefix) {
         Stack<Node> stack = getStack(prefix);
         return stack.size() != prefix.length() + 1? 0 : stack.peek().prefixCounter;
+    }
+
+    @Override
+    public void serialize(OutputStream out) throws IOException {
+        write(root, out);
+    }
+
+    @Override
+    public void deserialize(InputStream in) throws IOException {
+        root = read(in);
+    }
+
+    private void write(Node node, OutputStream out) throws IOException {
+        out.write(node.prefixCounter);
+        out.write(node.isFinal? 1 : 0);
+        for (Map.Entry<Character, Node> entry : node.edges.entrySet()) {
+            out.write(entry.getKey());
+            write(entry.getValue(), out);
+        }
+        out.write(0);
+    }
+
+    private Node read(InputStream in) throws IOException {
+        Node node = new Node();
+        node.prefixCounter = in.read();
+        node.isFinal = (in.read() != 0);
+        for (char c = (char) in.read(); c != 0; c = (char) in.read()) {
+            node.edges.put(c, read(in));
+        }
+        return node;
     }
 
     private Stack<Node> getStack(@NotNull String element) {
