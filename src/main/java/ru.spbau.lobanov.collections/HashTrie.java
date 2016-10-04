@@ -15,7 +15,9 @@ public class HashTrie implements Trie {
     @Override
     public boolean add(@NotNull String element) {
         Stack<Node> stack = getStackForced(element);
-        if (stack.peek().isFinal) return false;
+        if (stack.peek().isFinal) {
+            return false;
+        }
         stack.peek().isFinal = true;
         for (Node node : stack) {
             node.prefixCounter++;
@@ -39,7 +41,9 @@ public class HashTrie implements Trie {
         for (Node node : stack) {
             node.prefixCounter--;
         }
-        if (stack.peek().prefixCounter != 0) return true;
+        if (stack.peek().prefixCounter != 0) {
+            return true;
+        }
         while (stack.size() > 1 && stack.peek().prefixCounter == 0) {
             stack.pop();
         }
