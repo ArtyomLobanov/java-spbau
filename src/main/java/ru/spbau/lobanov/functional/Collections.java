@@ -3,7 +3,7 @@ package ru.spbau.lobanov.functional;
 import java.util.LinkedList;
 
 public final class Collections {
-    public static <X, Y> Iterable<Y> map(Iterable<X> stream, Function1<? super X, Y> f) {
+    public static <X, Y> LinkedList<Y> map(Iterable<X> stream, Function1<? super X, Y> f) {
         LinkedList<Y> res = new LinkedList<>();
         for (X x : stream) {
             res.addLast(f.apply(x));
@@ -11,7 +11,7 @@ public final class Collections {
         return res;
     }
 
-    public static <X> Iterable<X> filter(Iterable<X> stream, Predicate<? super X> predicate) {
+    public static <X> LinkedList<X> filter(Iterable<X> stream, Predicate<? super X> predicate) {
         LinkedList<X> res = new LinkedList<>();
         for (X x : stream) {
             if (predicate.apply(x)) {
@@ -21,7 +21,7 @@ public final class Collections {
         return res;
     }
 
-    public static <X> Iterable<X> takeWhile(Iterable<X> stream, Predicate<? super X> predicate) {
+    public static <X> LinkedList<X> takeWhile(Iterable<X> stream, Predicate<? super X> predicate) {
         LinkedList<X> res = new LinkedList<>();
         for (X x : stream) {
             if (!predicate.apply(x)) return res;
@@ -30,7 +30,7 @@ public final class Collections {
         return res;
     }
 
-    public static <X> Iterable<X> takeUnless(Iterable<X> stream, Predicate<? super X> predicate) {
+    public static <X> LinkedList<X> takeUnless(Iterable<X> stream, Predicate<? super X> predicate) {
         return takeWhile(stream, predicate.not());
     }
 
