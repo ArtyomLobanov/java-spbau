@@ -43,15 +43,19 @@ public final class SecondPartTasks {
     // Дано отображение из имени автора в список с содержанием его произведений.
     // Надо вычислить, чья общая длина произведений наибольшая.
     public static String findPrinter(Map<String, List<String>> compositions) {
-        return compositions.entrySet().stream().collect(Collectors.maxBy(
-                Comparator.comparingInt(e -> e.getValue().stream().mapToInt(String::length).sum())))
-                .map(Map.Entry::getKey).orElse("Nobody");
+        return compositions.entrySet().stream()
+                .max(Comparator.comparingInt(e -> e.getValue()
+                        .stream()
+                        .mapToInt(String::length)
+                        .sum()))
+                .map(Map.Entry::getKey).orElse(null);
     }
 
     // Вы крупный поставщик продуктов. Каждая торговая сеть делает вам заказ в виде Map<Товар, Количество>.
     // Необходимо вычислить, какой товар и в каком количестве надо поставить.
     public static Map<String, Integer> calculateGlobalOrder(List<Map<String, Integer>> orders) {
-        return orders.stream().map(Map::entrySet).flatMap(Collection::stream)
+        return orders.stream().map(Map::entrySet)
+                .flatMap(Collection::stream)
                 .collect(Collectors.groupingBy(Map.Entry::getKey, Collectors.summingInt(Map.Entry::getValue)));
     }
 //

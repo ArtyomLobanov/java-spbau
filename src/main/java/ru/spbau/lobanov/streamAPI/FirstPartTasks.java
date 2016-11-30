@@ -43,8 +43,10 @@ public final class FirstPartTasks {
 
     // Сгруппировать альбомы по артистам (в качестве значения вместо объекта 'Artist' использовать его имя)
     public static Map<Artist, List<String>> groupByArtistMapName(Stream<Album> albums) {
-        return albums.collect(Collectors.toMap(Album::getArtist,
-                a -> new ArrayList<String>(){{add(a.getName());}}, (a, b) -> {a.addAll(b); return a;}));
+        return albums.collect(Collectors.groupingBy(Album::getArtist,
+                Collectors.collectingAndThen(Collectors.toList(),
+                        lst -> lst.stream().map(Album::getName)
+                        .collect(Collectors.toList()))));
     }
 
     // Число повторяющихся альбомов в потоке
