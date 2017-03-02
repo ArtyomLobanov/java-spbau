@@ -27,8 +27,9 @@ public class LockFreeLazy<T> implements Lazy<T> {
     }
 
     /**
-     * It isn't guaranteed, that get-method of supplier will be invoked at most once,
-     * but it's guaranteed, that this method will always return the same object
+     * It is possible, that get-method of supplier will be
+     * invoked more than once, but it's guaranteed, that
+     * this method will always return the same object
      *
      * @return object, created by wrapped supplier
      */

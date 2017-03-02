@@ -6,7 +6,7 @@ import java.util.function.Supplier;
 final class LazyFactory {
 
     /**
-     * Private constructor to forbid to create instances of this class, because it's senseless
+     * Private constructor to forbid creating instances of this class, because it's senseless
      */
     private LazyFactory(){}
 
