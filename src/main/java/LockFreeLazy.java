@@ -1,8 +1,3 @@
-
-
-import com.sun.istack.internal.NotNull;
-import com.sun.istack.internal.Nullable;
-
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
 import java.util.function.Supplier;
@@ -23,7 +18,7 @@ public class LockFreeLazy<T> implements Lazy<T> {
     private volatile Supplier<T> supplier;
     private volatile T result;
 
-    LockFreeLazy(@NotNull Supplier<T> supplier) {
+    LockFreeLazy(Supplier<T> supplier) {
         this.supplier = supplier;
         // After compilation T will be replaced by Object,
         // so there is no problem to cast Object to T
@@ -37,7 +32,6 @@ public class LockFreeLazy<T> implements Lazy<T> {
      *
      * @return object, created by wrapped supplier
      */
-    @Nullable
     @Override
     public T get() {
         Supplier<T> currentSupplier = supplier;

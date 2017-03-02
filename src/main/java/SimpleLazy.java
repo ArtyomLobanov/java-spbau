@@ -1,6 +1,3 @@
-import com.sun.istack.internal.NotNull;
-import com.sun.istack.internal.Nullable;
-
 import java.util.Objects;
 import java.util.function.Supplier;
 
@@ -17,7 +14,7 @@ public class SimpleLazy<T> implements Lazy<T> {
     private Supplier<T> supplier;
     private T result;
 
-    SimpleLazy(@NotNull Supplier<T> supplier) {
+    SimpleLazy(Supplier<T> supplier) {
         this.supplier = supplier;
     }
 
@@ -28,7 +25,6 @@ public class SimpleLazy<T> implements Lazy<T> {
      *
      * @return object, created by wrapped supplier
      */
-    @Nullable
     @Override
     public T get() {
         if (!Objects.isNull(supplier)) {

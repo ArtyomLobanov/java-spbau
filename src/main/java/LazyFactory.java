@@ -1,4 +1,3 @@
-import com.sun.istack.internal.NotNull;
 import java.util.function.Supplier;
 
 /**
@@ -19,8 +18,7 @@ final class LazyFactory {
      * @param <T> Type of result, which supplier returns
      * @return instance of Lazy, which is designed for single-threaded execution
      */
-    @NotNull
-    static <T> Lazy<T> createSimpleLazy(@NotNull Supplier<T> supplier) {
+    static <T> Lazy<T> createSimpleLazy(Supplier<T> supplier) {
         return new SimpleLazy<>(supplier);
     }
 
@@ -33,8 +31,7 @@ final class LazyFactory {
      * @param <T> Type of result, which supplier returns
      * @return instance of Lazy, which is safe in case of multi-threaded execution
      */
-    @NotNull
-    static <T> Lazy<T> createUniqueCreationLazy(@NotNull Supplier<T> supplier) {
+    static <T> Lazy<T> createUniqueCreationLazy(Supplier<T> supplier) {
         return new UniqueCreationLazy<>(supplier);
     }
 
@@ -48,8 +45,7 @@ final class LazyFactory {
      * @param <T> Type of result, which supplier returns
      * @return instance of Lazy, which is safe and lock-free in case of multi-threaded execution
      */
-    @NotNull
-    static <T> Lazy<T> createLockFreeLazy(@NotNull Supplier<T> supplier) {
+    static <T> Lazy<T> createLockFreeLazy(Supplier<T> supplier) {
         return new LockFreeLazy<>(supplier);
     }
 }
