@@ -1,5 +1,6 @@
 package ru.spbau.lobanov.liteVCS.logic;
 
+import org.jetbrains.annotations.NotNull;
 import ru.spbau.lobanov.liteVCS.primitives.VersionNode;
 
 import java.util.ArrayList;
@@ -19,7 +20,7 @@ public class PathManager extends DataManager {
     }
 
     @Override
-    public VersionNode getVersionNode(String id) {
+    public VersionNode getVersionNode(@NotNull String id) {
         int i = Integer.parseInt(id);
         return versionNodes.get(i);
     }

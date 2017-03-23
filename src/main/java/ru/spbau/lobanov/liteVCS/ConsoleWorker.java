@@ -1,8 +1,15 @@
 package ru.spbau.lobanov.liteVCS;
 
-import ru.spbau.lobanov.liteVCS.logic.VersionControlSystemException;
+import ru.spbau.lobanov.liteVCS.logic.DataManager.BrokenFileException;
+import ru.spbau.lobanov.liteVCS.logic.DataManager.LostFileException;
+import ru.spbau.lobanov.liteVCS.logic.DataManager.RecreatingRepositoryException;
+import ru.spbau.lobanov.liteVCS.logic.DataManager.RepositoryNotInitializedException;
 import ru.spbau.lobanov.liteVCS.logic.LiteVCS;
 import ru.spbau.lobanov.liteVCS.logic.LiteVCS.ConflictMergeException;
+import ru.spbau.lobanov.liteVCS.logic.LiteVCS.RemoveActiveBranchException;
+import ru.spbau.lobanov.liteVCS.logic.LiteVCS.UncommittedChangesException;
+import ru.spbau.lobanov.liteVCS.logic.LiteVCS.UnknownBranchException;
+import ru.spbau.lobanov.liteVCS.logic.VersionControlSystemException;
 import ru.spbau.lobanov.liteVCS.primitives.Commit;
 
 import java.io.IOException;
@@ -11,12 +18,13 @@ import java.util.List;
 
 public class ConsoleWorker {
 
+    private static final String COMMIT_PLACE_HOLDER = "\"%s\" by %s (node: %s)\n";
+
     /**
      * Sugar to simplify checking count of arguments
      *
      * @param size expected arguments number
      * @param args array of arguments
-     *
      * @throws WrongNumberArgumentsException if length of array isn't equal to expected value
      */
     private static void checkArguments(int size, String[] args) throws WrongNumberArgumentsException {
@@ -28,7 +36,6 @@ public class ConsoleWorker {
     private static void execute(String command, String[] args) throws VersionControlSystemException,
             WrongNumberArgumentsException, IOException, UnknownCommandException {
         String path = Paths.get(System.getProperty("user.dir")).toString();
-//        String path = "C:\\workspace\\liteVCS";
         switch (command) {
             case "init":
                 checkArguments(0, args);
@@ -75,8 +82,12 @@ public class ConsoleWorker {
                 LiteVCS.uninstall(path);
                 break;
             case "logs":
-                checkArguments(0, args);
-                printLogs(LiteVCS.log(path, "100"));
+                checkArguments(1, args);
+                printLogs(LiteVCS.logs(path, args[0]));
+                break;
+            case "hello":
+                checkArguments(1, args);
+                LiteVCS.hello(path, args[0]);
                 break;
             default:
                 throw new UnknownCommandException(command);
@@ -84,7 +95,6 @@ public class ConsoleWorker {
     }
 
     public static void main(String[] args) {
-//        args = new String[]{"merge_branch",  "master", "commit4444+"};
         if (args.length == 0) {
             System.out.println("Error: empty command");
             return;
@@ -98,12 +108,30 @@ public class ConsoleWorker {
             for (String path : e.getConflicts()) {
                 System.out.println("    " + path);
             }
+        } catch (LostFileException e) {
+            System.out.println("Error: Looks, like important file disappeared: " + e.getExpectedFile().toString());
+        } catch (BrokenFileException e) {
+            System.out.println("Error: Looks, like file was badly changed: " + e.getBrokenFile().toString());
+        } catch (UnknownBranchException e) {
+            System.out.println("Error: branch doesn't exist");
+        } catch (UncommittedChangesException e) {
+            System.out.println("Error: commit or reset changes first");
+        } catch (UnknownCommandException e) {
+            System.out.println("Error: command doesn't exist");
+        } catch (WrongNumberArgumentsException e) {
+            System.out.println("Error: wrong number of arguments");
+        } catch (RepositoryNotInitializedException e) {
+            System.out.println("Error: Looks, like repository wasn't already created");
+        } catch (RemoveActiveBranchException e) {
+            System.out.println("Error: you cant remove active branch");
+        } catch (LiteVCS.IllegalBranchToMergeException e) {
+            System.out.println("Error: Looks, like you tried to branch with it-self");
+        } catch (RecreatingRepositoryException e) {
+            System.out.println("Error: Looks, like you tried to create repository second time");
         } catch (Throwable e) {
             System.out.println("Error: " + e.getMessage());
         }
     }
-
-    private static final String COMMIT_PLACE_HOLDER = "\"%s\" by %s (node: %s)";
 
     private static void printLogs(List<Commit> commits) {
         System.out.println("Local history:");

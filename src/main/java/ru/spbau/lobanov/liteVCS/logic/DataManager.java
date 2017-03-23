@@ -15,14 +15,14 @@ import java.util.Random;
  * This class is adapter between logic part of LiteVCS
  * and data storage
  */
-class DataManager {
+public class DataManager {
 
     private static final String ROOT_DIRECTORY_NAME = ".liteVCS";
     private static final String PATH_TO_VERSIONS_FILES = Paths.get(ROOT_DIRECTORY_NAME, "versions").toString();
     private static final String PATH_TO_CONTENT_DESCRIPTORS_FILES = Paths.get(ROOT_DIRECTORY_NAME, "descriptors").toString();
     private static final String PATH_TO_COMMITS_FILES = Paths.get(ROOT_DIRECTORY_NAME, "commits").toString();
-    private static final String PATH_TO_SAVED_FILES = Paths.get(ROOT_DIRECTORY_NAME, "files").toString();;
-    private static final String PATH_TO_BRANCHES = Paths.get(ROOT_DIRECTORY_NAME, "branches").toString();;
+    private static final String PATH_TO_SAVED_FILES = Paths.get(ROOT_DIRECTORY_NAME, "files").toString();
+    private static final String PATH_TO_BRANCHES = Paths.get(ROOT_DIRECTORY_NAME, "branches").toString();
     private static final String ROOT_VERSION_NODE_ID = "root";
     private static final String PATH_TO_STAGE = Paths.get(ROOT_DIRECTORY_NAME, "stage.lVCS").toString();;
     private static final String PATH_TO_HEADER = Paths.get(ROOT_DIRECTORY_NAME, "header.lVCS").toString();;

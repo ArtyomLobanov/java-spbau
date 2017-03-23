@@ -23,7 +23,18 @@ public class LiteVCS {
     private LiteVCS() {
     }
 
+    public static void hello(@NotNull String path, @NotNull String author) throws BrokenFileException,
+            LostFileException, RepositoryNotInitializedException {
+        DataManager dataManager = new DataManager(path);
+        String branchName = dataManager.getHeader().getCurrentBranchName();
+        dataManager.putHeader(new Header(author, branchName));
+    }
 
+    /**
+     * Wrapper for init-method of DataManager
+     *
+     * @throws RecreatingRepositoryException if repository was already created
+     */
     public static void init(@NotNull String path) throws RecreatingRepositoryException,
             RepositoryNotInitializedException {
         new DataManager(path).initRepository();
@@ -95,15 +106,13 @@ public class LiteVCS {
      * @throws BrokenFileException if file contained one of interesting object was not found
      */
     @NotNull
-    public static List<Commit> log(@NotNull String path, @NotNull String lengthLimit)
+    public static List<Commit> logs(@NotNull String path, @NotNull String lengthLimit)
             throws BrokenFileException, LostFileException {
-        int limit = Integer.MAX_VALUE;
-        if (lengthLimit != null) {
-            try {
-                limit = Integer.parseInt(lengthLimit);
-            } catch (NumberFormatException e) {
-                throw new IllegalArgumentException("Cant parse length limit", e);
-            }
+        int limit;
+        try {
+            limit = Integer.parseInt(lengthLimit);
+        } catch (NumberFormatException e) {
+            throw new IllegalArgumentException("Cant parse length limit", e);
         }
         DataManager dataManager = new DataManager(path);
         Header header = dataManager.getHeader();

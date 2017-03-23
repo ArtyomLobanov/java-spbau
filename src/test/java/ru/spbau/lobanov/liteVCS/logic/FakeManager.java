@@ -1,5 +1,6 @@
 package ru.spbau.lobanov.liteVCS.logic;
 
+import org.jetbrains.annotations.NotNull;
 import ru.spbau.lobanov.liteVCS.primitives.VersionNode;
 
 import java.util.HashMap;
@@ -25,7 +26,7 @@ public class FakeManager extends DataManager {
     }
 
     @Override
-    public VersionNode getVersionNode(String id) {
+    public VersionNode getVersionNode(@NotNull String id) {
         return map.get(id);
     }
 }
