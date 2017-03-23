@@ -19,4 +19,7 @@ dependencies {
     testCompile group: 'junit', name: 'junit', version: '4.11'
     // https://mvnrepository.com/artifact/com.google.guava/guava
     compile group: 'com.google.guava', name: 'guava', version: '21.0'
+
+    // https://mvnrepository.com/artifact/com.sun.istack/maven-istack-commons-plugin
+    compile group: 'com.sun.istack', name: 'maven-istack-commons-plugin', version: '2.11'
 }
