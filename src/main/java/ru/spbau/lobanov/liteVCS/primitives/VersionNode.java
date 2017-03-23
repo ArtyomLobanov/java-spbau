@@ -1,5 +1,7 @@
 package ru.spbau.lobanov.liteVCS.primitives;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.io.Serializable;
 
 /**
@@ -15,12 +17,13 @@ public class VersionNode implements Serializable {
     private final int deepLevel;
     private final String[] parentsTable;
 
-    public VersionNode(String commitID, int deepLevel, String[] parentsTable) {
+    public VersionNode(@NotNull String commitID, int deepLevel, @NotNull String[] parentsTable) {
         this.commitID = commitID;
         this.deepLevel = deepLevel;
         this.parentsTable = parentsTable;
     }
 
+    @NotNull
     public String getCommitID() {
         return commitID;
     }
@@ -37,6 +40,7 @@ public class VersionNode implements Serializable {
      *
      * @return table of parents
      */
+    @NotNull
     public String[] getParentsTable() {
         return parentsTable;
     }

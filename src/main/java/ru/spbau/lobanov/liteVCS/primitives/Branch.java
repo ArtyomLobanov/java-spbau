@@ -1,5 +1,7 @@
 package ru.spbau.lobanov.liteVCS.primitives;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.io.Serializable;
 
 /**
@@ -11,15 +13,17 @@ public class Branch implements Serializable {
     private final String versionNodeID;
     private final String name;
 
-    public Branch(String versionNodeID, String name) {
+    public Branch(@NotNull String versionNodeID, @NotNull String name) {
         this.versionNodeID = versionNodeID;
         this.name = name;
     }
 
+    @NotNull
     public String getVersionNodeID() {
         return versionNodeID;
     }
 
+    @NotNull
     public String getName() {
         return name;
     }

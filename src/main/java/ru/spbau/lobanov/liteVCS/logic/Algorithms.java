@@ -1,6 +1,6 @@
 package ru.spbau.lobanov.liteVCS.logic;
+import org.jetbrains.annotations.NotNull;
 
-import com.sun.istack.internal.NotNull;
 import ru.spbau.lobanov.liteVCS.logic.DataManager.BrokenFileException;
 import ru.spbau.lobanov.liteVCS.logic.DataManager.LostFileException;
 import ru.spbau.lobanov.liteVCS.primitives.VersionNode;

@@ -1,5 +1,7 @@
 package ru.spbau.lobanov.liteVCS.primitives;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.io.Serializable;
 
 /**
@@ -14,17 +16,19 @@ public class Commit implements Serializable {
     private final long time;
     private final String author;
 
-    public Commit(String contentDescriptorID, String commitMessage, long time, String author) {
-        this.contentDescriptorID = contentDescriptorID;
+    public Commit(@NotNull String descriptorID, @NotNull String commitMessage, long time, @NotNull String author) {
+        this.contentDescriptorID = descriptorID;
         this.commitMessage = commitMessage;
         this.time = time;
         this.author = author;
     }
 
+    @NotNull
     public String getContentDescriptorID() {
         return contentDescriptorID;
     }
 
+    @NotNull
     public String getCommitMessage() {
         return commitMessage;
     }
@@ -33,6 +37,7 @@ public class Commit implements Serializable {
         return time;
     }
 
+    @NotNull
     public String getAuthor() {
         return author;
     }

@@ -2,7 +2,7 @@ package ru.spbau.lobanov.liteVCS.logic;
 
 import com.google.common.hash.Hashing;
 import com.google.common.io.Files;
-import com.sun.istack.internal.NotNull;
+import org.jetbrains.annotations.NotNull;
 import ru.spbau.lobanov.liteVCS.primitives.*;
 
 import java.io.*;

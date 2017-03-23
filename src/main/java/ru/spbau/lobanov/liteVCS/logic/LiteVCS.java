@@ -1,7 +1,7 @@
 package ru.spbau.lobanov.liteVCS.logic;
 
-import com.sun.istack.internal.NotNull;
-import com.sun.istack.internal.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import ru.spbau.lobanov.liteVCS.logic.DataManager.BrokenFileException;
 import ru.spbau.lobanov.liteVCS.logic.DataManager.LostFileException;
 import ru.spbau.lobanov.liteVCS.logic.DataManager.RecreatingRepositoryException;
