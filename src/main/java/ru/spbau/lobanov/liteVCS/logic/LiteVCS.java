@@ -204,14 +204,12 @@ public class LiteVCS {
         }
         ContentDescriptor mergedDescriptor = mergeContent(activeContent, sideContent, lcaContent);
         String descriptorID = dataManager.addContentDescriptor(mergedDescriptor);
-        String commitMessage = Objects.nonNull(message) ? message : "Merge branch " + branchName;
-        Commit commit = new Commit(descriptorID, commitMessage, System.currentTimeMillis(), header.getAuthor());
+        Commit commit = new Commit(descriptorID, message, System.currentTimeMillis(), header.getAuthor());
         String commitID = dataManager.addCommit(commit);
         VersionNode versionNode = Algorithms.createVersionNode(commitID, activeVersionID, dataManager);
         String versionNodeID = dataManager.addVersionNode(versionNode);
         Branch updatedBranch = new Branch(versionNodeID, header.getCurrentBranchName());
         dataManager.addBranch(updatedBranch);
-        dataManager.addBranch(new Branch(descriptorID, header.getCurrentBranchName()));
     }
 
     /**
@@ -292,6 +290,7 @@ public class LiteVCS {
             Path folder = Paths.get(path).getParent();
             while (folder != null) {
                 folders.add(folder.toString());
+                folder = folder.getParent();
             }
         }
 

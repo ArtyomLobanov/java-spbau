@@ -28,6 +28,7 @@ public class ConsoleWorker {
     private static void execute(String command, String[] args) throws VersionControlSystemException,
             WrongNumberArgumentsException, IOException, UnknownCommandException {
         String path = Paths.get(System.getProperty("user.dir")).toString();
+//        String path = "C:\\workspace\\liteVCS";
         switch (command) {
             case "init":
                 checkArguments(0, args);
@@ -76,12 +77,14 @@ public class ConsoleWorker {
             case "logs":
                 checkArguments(0, args);
                 printLogs(LiteVCS.log(path, "100"));
+                break;
             default:
                 throw new UnknownCommandException(command);
         }
     }
 
     public static void main(String[] args) {
+//        args = new String[]{"merge_branch",  "master", "commit4444+"};
         if (args.length == 0) {
             System.out.println("Error: empty command");
             return;
@@ -100,11 +103,14 @@ public class ConsoleWorker {
         }
     }
 
+    private static final String COMMIT_PLACE_HOLDER = "\"%s\" by %s (node: %s)";
+
     private static void printLogs(List<Commit> commits) {
         System.out.println("Local history:");
         for (int i = commits.size() - 1; i >= 0; i--) {
             Commit commit = commits.get(i);
-            System.out.println("   " + commit.getCommitMessage() + commit.getContentDescriptorID());
+            System.out.printf(COMMIT_PLACE_HOLDER, commit.getCommitMessage(), commit.getAuthor(),
+                    commit.getContentDescriptorID());
         }
     }
 
