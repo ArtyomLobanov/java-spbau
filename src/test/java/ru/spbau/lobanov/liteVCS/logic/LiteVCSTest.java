@@ -4,13 +4,13 @@ import com.google.common.hash.Hashing;
 import com.google.common.io.Files;
 import org.junit.Test;
 
-import java.io.*;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.DoubleSummaryStatistics;
-import java.util.Random;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 public class LiteVCSTest {
 
