@@ -23,6 +23,15 @@ public class LiteVCS {
     private LiteVCS() {
     }
 
+    /**
+     * This method allows to set author's name.
+     * That name will be mentioned in following commits.
+     *
+     * @param author chosen name
+     * @throws LostFileException     if file contained one of interesting object was corrupted
+     * @throws BrokenFileException   if file contained one of interesting object was not found
+     * @throws RepositoryNotInitializedException if repository was not initialized
+     */
     public static void hello(@NotNull String path, @NotNull String author) throws BrokenFileException,
             LostFileException, RepositoryNotInitializedException {
         DataManager dataManager = new DataManager(path);
@@ -44,10 +53,12 @@ public class LiteVCS {
      * Method which add file to stage (list of files to commit).
      *
      * @param path path to working directory
-     * @throws RecreatingRepositoryException if repository was already created
+     * @throws LostFileException     if file contained one of interesting object was corrupted
+     * @throws BrokenFileException   if file contained one of interesting object was not found
+     * @throws RepositoryNotInitializedException if repository was not initialized
      */
     public static void add(@NotNull String path, @NotNull String fileName)
-            throws VersionControlSystemException {
+            throws RepositoryNotInitializedException, LostFileException, BrokenFileException {
         File file = Paths.get(path, fileName).toFile();
         DataManager dataManager = new DataManager(path);
         ContentDescriptor stage = dataManager.getStage();
@@ -70,8 +81,9 @@ public class LiteVCS {
      *
      * @param path    path to working directory
      * @param message text which explain changes which was made in this commit
-     * @throws LostFileException   if file contained one of interesting object was corrupted
-     * @throws BrokenFileException if file contained one of interesting object was not found
+     * @throws LostFileException     if file contained one of interesting object was corrupted
+     * @throws BrokenFileException   if file contained one of interesting object was not found
+     * @throws RepositoryNotInitializedException if repository was not initialized
      */
     public static void commit(@NotNull String path, @NotNull String message) throws BrokenFileException,
             LostFileException, RepositoryNotInitializedException {
@@ -133,6 +145,7 @@ public class LiteVCS {
      * @param branchName name of new branch
      * @throws LostFileException     if file contained one of interesting object was corrupted
      * @throws BrokenFileException   if file contained one of interesting object was not found
+     * @throws RepositoryNotInitializedException if repository was not initialized
      * @throws ConflictNameException if branch with equal name is already exist
      */
     public static void createBranch(@NotNull String path, @NotNull String branchName)
@@ -180,8 +193,9 @@ public class LiteVCS {
      * @param branchName name of branch to remove
      * @param message    text ehich will be used in commit
      * @param path       path to working directory
-     * @throws LostFileException             if file contained one of interesting object was corrupted
-     * @throws BrokenFileException           if file contained one of interesting object was not found
+     * @throws LostFileException     if file contained one of interesting object was corrupted
+     * @throws BrokenFileException   if file contained one of interesting object was not found
+     * @throws RepositoryNotInitializedException if repository was not initialized
      * @throws IllegalBranchToMergeException if it's logically impossible to merge thar branches
      * @throws UnknownBranchException        if branch with the same name wasn't found
      * @throws UncommittedChangesException   if stage not empty
@@ -334,8 +348,9 @@ public class LiteVCS {
     /**
      * @param path       path to working directory
      * @param branchName name of interesting branch
-     * @throws LostFileException              if file contained one of interesting object was corrupted
-     * @throws BrokenFileException            if file contained one of interesting object was not found
+     * @throws LostFileException     if file contained one of interesting object was corrupted
+     * @throws BrokenFileException   if file contained one of interesting object was not found
+     * @throws RepositoryNotInitializedException if repository was not initialized
      * @throws SwitchOnCurrentBranchException if you try to switch on your current branch
      * @throws UncommittedChangesException    if stage isn't empty before change branch
      * @throws UnknownBranchException         if such branch wasn't found
@@ -368,8 +383,9 @@ public class LiteVCS {
      * Restore saved copies from current Branch
      *
      * @param path path to working directory
-     * @throws LostFileException   if file contained one of interesting object was corrupted
-     * @throws BrokenFileException if file contained one of interesting object was not found
+     * @throws LostFileException     if file contained one of interesting object was corrupted
+     * @throws BrokenFileException   if file contained one of interesting object was not found
+     * @throws RepositoryNotInitializedException if repository was not initialized
      * @throws IOException         in case of some IO problems
      */
     public static void reset(@NotNull String path) throws BrokenFileException, LostFileException, IOException,
