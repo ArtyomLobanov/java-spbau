@@ -18,7 +18,7 @@ import java.util.Random;
 public class DataManager {
 
     private static final String ROOT_DIRECTORY_NAME = ".liteVCS";
-    private static final String PATH_TO_VERSIONS_FILES = ROOT_DIRECTORY_NAME + "\\versions";
+    private static final String PATH_TO_VERSIONS_FILES = concat(ROOT_DIRECTORY_NAME, "versions");
     private static final String PATH_TO_CONTENT_DESCRIPTORS_FILES = concat(ROOT_DIRECTORY_NAME, "descriptors");
     private static final String PATH_TO_COMMITS_FILES = concat(ROOT_DIRECTORY_NAME, "commits");
     private static final String PATH_TO_SAVED_FILES = concat(ROOT_DIRECTORY_NAME, "files");
