@@ -84,7 +84,7 @@ public class ConsoleWorker {
                 break;
             case "logs":
                 checkArguments(1, args);
-                printLogs(liteVCS.logs(args[0]));
+                printHistory(liteVCS.history(args[0]));
                 break;
             case "hello":
                 checkArguments(1, args);
@@ -134,7 +134,7 @@ public class ConsoleWorker {
         }
     }
 
-    private static void printLogs(List<Commit> commits) {
+    private static void printHistory(List<Commit> commits) {
         System.out.println("Local history:");
         for (int i = commits.size() - 1; i >= 0; i--) {
             Commit commit = commits.get(i);

@@ -119,7 +119,7 @@ public class LiteVCS {
      * @throws BrokenFileException if file contained one of interesting object was not found
      */
     @NotNull
-    public List<Commit> logs(@NotNull String lengthLimit)
+    public List<Commit> history(@NotNull String lengthLimit)
             throws BrokenFileException, LostFileException {
         int limit;
         try {

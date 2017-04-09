@@ -1,15 +1,14 @@
 package ru.spbau.lobanov.liteVCS.logic;
 
 import org.junit.Test;
-import ru.spbau.lobanov.liteVCS.primitives.*;
+import ru.spbau.lobanov.liteVCS.primitives.Branch;
+import ru.spbau.lobanov.liteVCS.primitives.Commit;
+import ru.spbau.lobanov.liteVCS.primitives.ContentDescriptor;
+import ru.spbau.lobanov.liteVCS.primitives.Header;
 
-import javax.management.Descriptor;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
-import static org.junit.Assert.*;
-
-/**
- * Created by Артём on 09.04.2017.
- */
 public class LiteVCSTest {
     @Test
     public void hello() throws Exception {
@@ -62,8 +61,8 @@ public class LiteVCSTest {
         liteVCS.add("b.txt");
         liteVCS.commit("message2");
 
-        Commit commit1 = liteVCS.logs("2").get(1);
-        Commit commit2 = liteVCS.logs("2").get(0);
+        Commit commit1 = liteVCS.history("2").get(1);
+        Commit commit2 = liteVCS.history("2").get(0);
 
         assertEquals("message", commit1.getCommitMessage());
         assertEquals("message2", commit2.getCommitMessage());
