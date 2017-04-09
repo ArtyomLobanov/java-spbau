@@ -13,15 +13,15 @@ public class VirtualDataManager extends DataManager {
 
     private static final String ROOT_VERSION_NODE_ID = "root";
 
-    private boolean isInitialized;
-    private HashMap<String, Branch> branches = new HashMap<>();
-    private HashMap<String, Commit> commits = new HashMap<>();
-    private HashMap<String, ContentDescriptor> descriptors = new HashMap<>();
-    private HashMap<String, VersionNode> versions = new HashMap<>();
-    private HashMap<String, VirtualFile> files = new HashMap<>();
-    private Header header;
-    private ContentDescriptor stage;
-    private HashMap<String, File> workingCopy = new HashMap<>();
+    boolean isInitialized;
+    HashMap<String, Branch> branches = new HashMap<>();
+    HashMap<String, Commit> commits = new HashMap<>();
+    HashMap<String, ContentDescriptor> descriptors = new HashMap<>();
+    HashMap<String, VersionNode> versions = new HashMap<>();
+    HashMap<String, VirtualFile> files = new HashMap<>();
+    Header header;
+    ContentDescriptor stage;
+    HashMap<String, File> workingCopy = new HashMap<>();
 
 
     VirtualDataManager() {

@@ -35,4 +35,8 @@ public class VirtualFile extends File {
     public boolean isFile() {
         return true;
     }
+
+    public String getValue() {
+        return value;
+    }
 }
