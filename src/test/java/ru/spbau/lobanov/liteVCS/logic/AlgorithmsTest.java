@@ -1,8 +1,11 @@
 package ru.spbau.lobanov.liteVCS.logic;
 
+import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 import ru.spbau.lobanov.liteVCS.primitives.VersionNode;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import static org.junit.Assert.*;
@@ -74,5 +77,52 @@ public class AlgorithmsTest {
         for (int i = 0; i < answer2.length; i++) {
             assertSame(answer2[i], parents2.get(i));
         }
+    }
+
+    private static class PathManager extends DataManager {
+
+        private final ArrayList<VersionNode> versionNodes = new ArrayList<>();
+
+        PathManager(int size) {
+            super("");
+            try {
+                versionNodes.add(Algorithms.createRootNode("0", ""));
+                for (int i = 1; i < size; i++) {
+                    versionNodes.add(Algorithms.createVersionNode("", (i - 1) + "", this));
+                }
+            } catch (Exception ignored){}
+        }
+
+        @NotNull
+        @Override
+        public VersionNode fetchVersionNode(@NotNull String id) {
+            int i = Integer.parseInt(id);
+            return versionNodes.get(i);
+        }
+    }
+
+    private static class FakeManager extends DataManager {
+        private final HashMap<String, VersionNode> map = new HashMap<>();
+
+        FakeManager() {
+            super("");
+        }
+
+        void addVersionNode(String parentID) throws BrokenFileException, LostFileException {
+            VersionNode versionNode;
+            if (parentID == null) {
+                versionNode = Algorithms.createRootNode("0", "");
+            } else {
+                versionNode = Algorithms.createVersionNode("", parentID, this);
+            }
+            map.put(map.size() + "", versionNode);
+        }
+
+        @NotNull
+        @Override
+        public VersionNode fetchVersionNode(@NotNull String id) {
+            return map.get(id);
+        }
+
     }
 }

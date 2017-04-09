@@ -44,42 +44,37 @@ public class LiteVCSTest {
 
     @Test
     public void addBranchSwitchChangeSwitchMerge() throws Exception {
-        String folder = randomWorkspace();
-        String fullPath = Paths.get(workspace, folder).toString();
-        Files.createParentDirs(Paths.get(workspace, folder).toFile());
-        LiteVCS liteVCS = new LiteVCS(fullPath);
+        VirtualDataManager dataManager = new VirtualDataManager();
+        LiteVCS liteVCS = new LiteVCS(dataManager);
         liteVCS.init();
-        fillFile(fullPath, "a.txt");
-        String initialState = hash(fullPath, "a.txt");
+        dataManager.writeFile("a.txt", "versiona1");
+        String initialState = dataManager.hash("a.txt");
         liteVCS.add("a.txt");
         liteVCS.commit("commit #1");
         liteVCS.createBranch("br");
         liteVCS.switchBranch("br");
-        fillFile(fullPath, "a.txt");
-        String lastState = hash(fullPath, "a.txt");
+        dataManager.writeFile("a.txt", "versiona2");
+        String lastState = dataManager.hash("a.txt");
         liteVCS.add("a.txt");
         liteVCS.commit("commit2");
         liteVCS.switchBranch("master");
-        assertEquals(initialState, hash(fullPath, "a.txt"));
+        assertEquals(initialState, dataManager.hash("a.txt"));
         liteVCS.mergeBranch("br", "mesage");
         liteVCS.reset();
-        assertEquals(lastState, hash(fullPath, "a.txt"));
+        assertEquals(lastState, dataManager.hash("a.txt"));
     }
 
     @Test
     public void addBranchChangeSwitchChangeSwitchMerge() throws Exception {
-        String folder = randomWorkspace();
-        String fullPath = Paths.get(workspace, folder).toString();
-        Files.createParentDirs(Paths.get(workspace, folder).toFile());
-        LiteVCS liteVCS = new LiteVCS(fullPath);
+        VirtualDataManager dataManager = new VirtualDataManager();
+        LiteVCS liteVCS = new LiteVCS(dataManager);
         liteVCS.init();
-        String initialStateA, initialStateB;
-        do {
-            fillFile(fullPath, "a.txt");
-            initialStateA = hash(fullPath, "a.txt");
-            fillFile(fullPath, "b.txt");
-            initialStateB = hash(fullPath, "b.txt");
-        } while (initialStateA.equals(initialStateB));
+
+        dataManager.writeFile("a.txt", "versiona1");
+        String initialStateA = dataManager.hash("a.txt");
+
+        dataManager.writeFile("b.txt", "versionb1");
+        String initialStateB = dataManager.hash("b.txt");
 
         liteVCS.add("a.txt");
         liteVCS.add("b.txt");
@@ -87,27 +82,27 @@ public class LiteVCSTest {
         liteVCS.createBranch("br");
 
 
-        fillFile(fullPath, "a.txt");
-        String resultStateA = hash(fullPath, "a.txt");
+        dataManager.writeFile("a.txt", "versiona2");
+        String resultStateA = dataManager.hash("a.txt");
         liteVCS.add("a.txt");
         liteVCS.commit("commit #2");
 
         liteVCS.switchBranch("br");
 
-        fillFile(fullPath, "b.txt");
-        String resultStateB = hash(fullPath, "b.txt");
+        dataManager.writeFile("b.txt", "versionb2");
+        String resultStateB = dataManager.hash("b.txt");
         liteVCS.add("b.txt");
         liteVCS.commit("commit3");
 
         liteVCS.switchBranch("master");
-        assertEquals(resultStateA, hash(fullPath, "a.txt"));
-        assertEquals(initialStateB, hash(fullPath, "b.txt"));
+        assertEquals(resultStateA, dataManager.hash("a.txt"));
+        assertEquals(initialStateB, dataManager.hash("b.txt"));
 
         liteVCS.mergeBranch("br", "mesage");
         liteVCS.reset();
 
 
-        assertEquals(resultStateA, hash(fullPath, "a.txt"));
-        assertEquals(resultStateB, hash(fullPath, "b.txt"));
+        assertEquals(resultStateA, dataManager.hash("a.txt"));
+        assertEquals(resultStateB, dataManager.hash("b.txt"));
     }
 }
