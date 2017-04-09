@@ -20,7 +20,14 @@ import java.util.*;
  */
 public class LiteVCS {
 
-    private LiteVCS() {
+    private final DataManager dataManager;
+
+    public LiteVCS(@NotNull String path) {
+        dataManager = new DataManager(path);
+    }
+
+    public LiteVCS(@NotNull DataManager dataManager) {
+        this.dataManager = dataManager;
     }
 
     /**
@@ -32,9 +39,8 @@ public class LiteVCS {
      * @throws BrokenFileException   if file contained one of interesting object was not found
      * @throws RepositoryNotInitializedException if repository was not initialized
      */
-    public static void hello(@NotNull String path, @NotNull String author) throws BrokenFileException,
+    public void hello(@NotNull String author) throws BrokenFileException,
             LostFileException, RepositoryNotInitializedException {
-        DataManager dataManager = new DataManager(path);
         String branchName = dataManager.getHeader().getCurrentBranchName();
         dataManager.putHeader(new Header(author, branchName));
     }
@@ -44,33 +50,31 @@ public class LiteVCS {
      *
      * @throws RecreatingRepositoryException if repository was already created
      */
-    public static void init(@NotNull String path) throws RecreatingRepositoryException,
+    public void init() throws RecreatingRepositoryException,
             RepositoryNotInitializedException {
-        new DataManager(path).initRepository();
+        dataManager.initRepository();
     }
 
     /**
      * Method which add file to stage (list of files to commit).
      *
-     * @param path path to working directory
+     * @param fileName relative path to target file
      * @throws LostFileException     if file contained one of interesting object was corrupted
      * @throws BrokenFileException   if file contained one of interesting object was not found
      * @throws RepositoryNotInitializedException if repository was not initialized
      */
-    public static void add(@NotNull String path, @NotNull String fileName)
+    public void add(@NotNull String fileName)
             throws RepositoryNotInitializedException, LostFileException, BrokenFileException {
-        File file = Paths.get(path, fileName).toFile();
-        DataManager dataManager = new DataManager(path);
+        File file = dataManager.getFile(fileName);
         ContentDescriptor stage = dataManager.getStage();
         ContentDescriptor updatedStage;
         if (!file.isFile()) {
             throw new Error("Possible to add files only");
         }
         String fileID = dataManager.addFile(file);
-        String relatedPath = Paths.get(path).relativize(file.toPath()).toString();
         updatedStage = ContentDescriptor.builder()
                 .addAllFiles(stage)
-                .addFile(relatedPath, fileID)
+                .addFile(fileName, fileID)
                 .build();
         dataManager.putStage(updatedStage);
     }
@@ -79,20 +83,18 @@ public class LiteVCS {
      * Method which get list of changed from stage,
      * create Commit and add it to head of current branch
      *
-     * @param path    path to working directory
      * @param message text which explain changes which was made in this commit
      * @throws LostFileException     if file contained one of interesting object was corrupted
      * @throws BrokenFileException   if file contained one of interesting object was not found
      * @throws RepositoryNotInitializedException if repository was not initialized
      */
-    public static void commit(@NotNull String path, @NotNull String message) throws BrokenFileException,
+    public void commit(@NotNull String message) throws BrokenFileException,
             LostFileException, RepositoryNotInitializedException {
-        DataManager dataManager = new DataManager(path);
         Header header = dataManager.getHeader();
-        Branch currentBranch = dataManager.getBranch(header.getCurrentBranchName());
-        VersionNode currentVersion = dataManager.getVersionNode(currentBranch.getVersionNodeID());
-        Commit lastCommit = dataManager.getCommit(currentVersion.getCommitID());
-        ContentDescriptor currentDescriptor = dataManager.getContentDescriptor(lastCommit.getContentDescriptorID());
+        Branch currentBranch = dataManager.fetchBranch(header.getCurrentBranchName());
+        VersionNode currentVersion = dataManager.fetchVersionNode(currentBranch.getVersionNodeID());
+        Commit lastCommit = dataManager.fetchCommit(currentVersion.getCommitID());
+        ContentDescriptor currentDescriptor = dataManager.fetchContentDescriptor(lastCommit.getContentDescriptorID());
         ContentDescriptor stage = dataManager.getStage();
 
         ContentDescriptor updatedDescriptor = ContentDescriptor.builder()
@@ -112,13 +114,12 @@ public class LiteVCS {
     /**
      * Method which return list of node's parents sorted by increasing distance
      *
-     * @param path        path to working directory
      * @param lengthLimit limit size of returned List
      * @throws LostFileException   if file contained one of interesting object was corrupted
      * @throws BrokenFileException if file contained one of interesting object was not found
      */
     @NotNull
-    public static List<Commit> logs(@NotNull String path, @NotNull String lengthLimit)
+    public List<Commit> logs(@NotNull String lengthLimit)
             throws BrokenFileException, LostFileException {
         int limit;
         try {
@@ -126,13 +127,12 @@ public class LiteVCS {
         } catch (NumberFormatException e) {
             throw new IllegalArgumentException("Cant parse length limit", e);
         }
-        DataManager dataManager = new DataManager(path);
         Header header = dataManager.getHeader();
-        Branch currentBranch = dataManager.getBranch(header.getCurrentBranchName());
+        Branch currentBranch = dataManager.fetchBranch(header.getCurrentBranchName());
         List<VersionNode> versions = Algorithms.getAllParents(currentBranch.getVersionNodeID(), limit, dataManager);
         List<Commit> commits = new ArrayList<>();
         for (VersionNode versionNode : versions) {
-            commits.add(dataManager.getCommit(versionNode.getCommitID()));
+            commits.add(dataManager.fetchCommit(versionNode.getCommitID()));
         }
         return commits;
     }
@@ -141,18 +141,16 @@ public class LiteVCS {
      * Method create new Branch which current version
      * equal to version of active branch
      *
-     * @param path       path to working directory
      * @param branchName name of new branch
      * @throws LostFileException     if file contained one of interesting object was corrupted
      * @throws BrokenFileException   if file contained one of interesting object was not found
      * @throws RepositoryNotInitializedException if repository was not initialized
      * @throws ConflictNameException if branch with equal name is already exist
      */
-    public static void createBranch(@NotNull String path, @NotNull String branchName)
+    public void createBranch(@NotNull String branchName)
             throws BrokenFileException, LostFileException, ConflictNameException, RepositoryNotInitializedException {
-        DataManager dataManager = new DataManager(path);
         Header header = dataManager.getHeader();
-        Branch currentBranch = dataManager.getBranch(header.getCurrentBranchName());
+        Branch currentBranch = dataManager.fetchBranch(header.getCurrentBranchName());
         if (dataManager.hasBranch(branchName)) {
             throw new ConflictNameException("Branch with the same name is already exist");
         }
@@ -164,16 +162,14 @@ public class LiteVCS {
      * Method removes record about given branch
      *
      * @param branchName name of branch to remove
-     * @param path       path to working directory
      * @throws LostFileException           if file contained one of interesting object was corrupted
      * @throws BrokenFileException         if file contained one of interesting object was not found
      * @throws RemoveActiveBranchException if user try to remove active(current) branch
      * @throws UnknownBranchException      if branch with the same name wasn't found
      */
-    public static void removeBranch(@NotNull String path, @NotNull String branchName)
+    public void removeBranch(@NotNull String branchName)
             throws BrokenFileException, LostFileException,
             RemoveActiveBranchException, UnknownBranchException {
-        DataManager dataManager = new DataManager(path);
         Header header = dataManager.getHeader();
         if (header.getCurrentBranchName().equals(branchName)) {
             throw new RemoveActiveBranchException("Cant remove active branch");
@@ -192,7 +188,6 @@ public class LiteVCS {
      *
      * @param branchName name of branch to remove
      * @param message    text ehich will be used in commit
-     * @param path       path to working directory
      * @throws LostFileException     if file contained one of interesting object was corrupted
      * @throws BrokenFileException   if file contained one of interesting object was not found
      * @throws RepositoryNotInitializedException if repository was not initialized
@@ -201,10 +196,9 @@ public class LiteVCS {
      * @throws UncommittedChangesException   if stage not empty
      * @throws ConflictMergeException        if unresolvable conflict was found
      */
-    public static void mergeBranch(@NotNull String path, @NotNull String branchName, @NotNull String message)
+    public void mergeBranch(@NotNull String branchName, @NotNull String message)
             throws BrokenFileException, LostFileException, IllegalBranchToMergeException, UnknownBranchException,
             UncommittedChangesException, ConflictMergeException, RepositoryNotInitializedException {
-        DataManager dataManager = new DataManager(path);
         Header header = dataManager.getHeader();
         if (header.getCurrentBranchName().equals(branchName)) {
             throw new IllegalBranchToMergeException("Cant merge branch with itself");
@@ -215,12 +209,12 @@ public class LiteVCS {
         if (!dataManager.getStage().getFiles().isEmpty()) {
             throw new UncommittedChangesException("Commit changes before merge");
         }
-        String activeVersionID = dataManager.getBranch(header.getCurrentBranchName()).getVersionNodeID();
-        String sideVersionID = dataManager.getBranch(branchName).getVersionNodeID();
+        String activeVersionID = dataManager.fetchBranch(header.getCurrentBranchName()).getVersionNodeID();
+        String sideVersionID = dataManager.fetchBranch(branchName).getVersionNodeID();
         String lcaVersionID = Algorithms.findLowestCommonAncestor(activeVersionID, sideVersionID, dataManager);
-        ContentDescriptor activeContent = toContentDescriptor(activeVersionID, dataManager);
-        ContentDescriptor sideContent = toContentDescriptor(sideVersionID, dataManager);
-        ContentDescriptor lcaContent = toContentDescriptor(lcaVersionID, dataManager);
+        ContentDescriptor activeContent = toContentDescriptor(activeVersionID);
+        ContentDescriptor sideContent = toContentDescriptor(sideVersionID);
+        ContentDescriptor lcaContent = toContentDescriptor(lcaVersionID);
         List<String> conflicts = checkConflicts(activeContent, sideContent, lcaContent);
         if (!conflicts.isEmpty()) {
             throw new ConflictMergeException("Conflicts was found", conflicts);
@@ -332,21 +326,19 @@ public class LiteVCS {
      * Sugar to simplify getting ContentDescriptor from ID of VersionNode
      *
      * @param versionID   id of VersionNode
-     * @param dataManager dataManager, which provides access to the files
      * @return loaded ContentDescriptor
      * @throws LostFileException   if file contained one of interesting object was corrupted
      * @throws BrokenFileException if file contained one of interesting object was not found
      */
     @NotNull
-    private static ContentDescriptor toContentDescriptor(@NotNull String versionID, @NotNull DataManager dataManager)
+    private ContentDescriptor toContentDescriptor(@NotNull String versionID)
             throws BrokenFileException, LostFileException {
-        VersionNode versionNode = dataManager.getVersionNode(versionID);
-        Commit commit = dataManager.getCommit(versionNode.getCommitID());
-        return dataManager.getContentDescriptor(commit.getContentDescriptorID());
+        VersionNode versionNode = dataManager.fetchVersionNode(versionID);
+        Commit commit = dataManager.fetchCommit(versionNode.getCommitID());
+        return dataManager.fetchContentDescriptor(commit.getContentDescriptorID());
     }
 
     /**
-     * @param path       path to working directory
      * @param branchName name of interesting branch
      * @throws LostFileException     if file contained one of interesting object was corrupted
      * @throws BrokenFileException   if file contained one of interesting object was not found
@@ -356,10 +348,9 @@ public class LiteVCS {
      * @throws UnknownBranchException         if such branch wasn't found
      * @throws IOException                    in case of some IO problems
      */
-    public static void switchBranch(@NotNull String path, @NotNull String branchName)
+    public void switchBranch(@NotNull String branchName)
             throws BrokenFileException, LostFileException, SwitchOnCurrentBranchException,
             UncommittedChangesException, UnknownBranchException, IOException, RepositoryNotInitializedException {
-        DataManager dataManager = new DataManager(path);
         Header header = dataManager.getHeader();
         if (header.getCurrentBranchName().equals(branchName)) {
             throw new SwitchOnCurrentBranchException("This branch is already chosen");
@@ -371,10 +362,10 @@ public class LiteVCS {
         if (!dataManager.hasBranch(branchName)) {
             throw new UnknownBranchException("Branch wasn't found");
         }
-        Branch branch = dataManager.getBranch(branchName);
-        VersionNode versionNode = dataManager.getVersionNode(branch.getVersionNodeID());
-        Commit lastCommit = dataManager.getCommit(versionNode.getCommitID());
-        checkout(path, lastCommit.getContentDescriptorID());
+        Branch branch = dataManager.fetchBranch(branchName);
+        VersionNode versionNode = dataManager.fetchVersionNode(branch.getVersionNodeID());
+        Commit lastCommit = dataManager.fetchCommit(versionNode.getCommitID());
+        checkout(lastCommit.getContentDescriptorID());
         Header updatedHeader = new Header(header.getAuthor(), branchName);
         dataManager.putHeader(updatedHeader);
     }
@@ -382,54 +373,49 @@ public class LiteVCS {
     /**
      * Restore saved copies from current Branch
      *
-     * @param path path to working directory
      * @throws LostFileException     if file contained one of interesting object was corrupted
      * @throws BrokenFileException   if file contained one of interesting object was not found
      * @throws RepositoryNotInitializedException if repository was not initialized
      * @throws IOException         in case of some IO problems
      */
-    public static void reset(@NotNull String path) throws BrokenFileException, LostFileException, IOException,
+    public void reset() throws BrokenFileException, LostFileException, IOException,
             RepositoryNotInitializedException {
-        DataManager dataManager = new DataManager(path);
         dataManager.putStage(ContentDescriptor.EMPTY);
         Header header = dataManager.getHeader();
-        Branch branch = dataManager.getBranch(header.getCurrentBranchName());
-        VersionNode versionNode = dataManager.getVersionNode(branch.getVersionNodeID());
-        Commit lastCommit = dataManager.getCommit(versionNode.getCommitID());
-        checkout(path, lastCommit.getContentDescriptorID());
+        Branch branch = dataManager.fetchBranch(header.getCurrentBranchName());
+        VersionNode versionNode = dataManager.fetchVersionNode(branch.getVersionNodeID());
+        Commit lastCommit = dataManager.fetchCommit(versionNode.getCommitID());
+        checkout(lastCommit.getContentDescriptorID());
     }
 
     /**
      * Restore saved file from given ContentDescriptor
      *
-     * @param path         path to working directory
      * @param descriptorID id of interesting description
      * @throws LostFileException   if file contained one of interesting object was corrupted
      * @throws BrokenFileException if file contained one of interesting object was not found
      * @throws IOException         in case of some IO problems
      */
-    public static void checkout(@NotNull String path, @NotNull String descriptorID)
+    public void checkout(@NotNull String descriptorID)
             throws IOException, BrokenFileException, LostFileException {
-        DataManager dataManager = new DataManager(path);
         dataManager.clearWorkingCopy();
         dataManager.loadFiles(descriptorID);
     }
 
     /**
      * This method remove all file from working directory
-     *
-     * @param path path to working directory
      */
-    public static void clear(@NotNull String path) {
-        new DataManager(path).clearWorkingCopy();
+    public void clear() {
+        dataManager.clearWorkingCopy();
     }
 
     /**
-     * @param path path to working directory
+     * Remove repository, but doesn't touch files in working copy
+     *
      * @throws RepositoryNotInitializedException if there is nothing to delete
      */
-    public static void uninstall(@NotNull String path) throws RepositoryNotInitializedException {
-        new DataManager(path).uninstallRepository();
+    public void uninstall() throws RepositoryNotInitializedException {
+        dataManager.uninstallRepository();
     }
 
     public static class SwitchOnCurrentBranchException extends VersionControlSystemException {

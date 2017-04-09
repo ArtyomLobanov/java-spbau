@@ -1,11 +1,8 @@
 package ru.spbau.lobanov.liteVCS.logic;
 
 import org.junit.Test;
-import ru.spbau.lobanov.liteVCS.primitives.Commit;
 import ru.spbau.lobanov.liteVCS.primitives.VersionNode;
 
-import java.lang.annotation.Target;
-import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.Assert.*;
@@ -62,17 +59,17 @@ public class AlgorithmsTest {
     @Test
     public void allParentsSmallDataTest() throws DataManager.LostFileException, DataManager.BrokenFileException {
         List<VersionNode> parents = getAllParents("13", 7, treeExample);
-        VersionNode[] answer = {treeExample.getVersionNode("13"), treeExample.getVersionNode("6"),
-                treeExample.getVersionNode("4"), treeExample.getVersionNode("3"),
-                treeExample.getVersionNode("2"), treeExample.getVersionNode("0")};
+        VersionNode[] answer = {treeExample.fetchVersionNode("13"), treeExample.fetchVersionNode("6"),
+                treeExample.fetchVersionNode("4"), treeExample.fetchVersionNode("3"),
+                treeExample.fetchVersionNode("2"), treeExample.fetchVersionNode("0")};
         assertEquals(answer.length, parents.size());
         for (int i = 0; i < answer.length; i++) {
             assertSame(answer[i], parents.get(i));
         }
 
         List<VersionNode> parents2 = getAllParents("14", 4, treeExample);
-        VersionNode[] answer2 = {treeExample.getVersionNode("14"), treeExample.getVersionNode("8"),
-                treeExample.getVersionNode("7"), treeExample.getVersionNode("1")};
+        VersionNode[] answer2 = {treeExample.fetchVersionNode("14"), treeExample.fetchVersionNode("8"),
+                treeExample.fetchVersionNode("7"), treeExample.fetchVersionNode("1")};
         assertEquals(answer2.length, parents2.size());
         for (int i = 0; i < answer2.length; i++) {
             assertSame(answer2[i], parents2.get(i));

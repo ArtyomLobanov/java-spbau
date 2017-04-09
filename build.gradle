@@ -3,14 +3,6 @@ version '1.0-SNAPSHOT'
 
 apply plugin: 'java'
 
-jar {
-    manifest {
-        def manif = "${projectDir}/src/main/java/META-INF/MANIFEST.MF"
-        from file(manif)
-    }
-    baseName = "liteVCS"
-}
-
 repositories {
     mavenCentral()
 }

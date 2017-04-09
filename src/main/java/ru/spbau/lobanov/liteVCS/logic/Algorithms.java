@@ -50,7 +50,7 @@ class Algorithms {
         for (int i = 1; i < CACHE_SIZE_LIMIT; i++) {
             parentsTable[i] = getParent(parentsTable[i - 1], i - 1, manager);
         }
-        VersionNode parent = manager.getVersionNode(parentID);
+        VersionNode parent = manager.fetchVersionNode(parentID);
         return new VersionNode(commitID, parent.getDeepLevel() + 1, parentsTable);
     }
 
@@ -70,7 +70,7 @@ class Algorithms {
         String currentVersionID = versionID;
         ArrayList<VersionNode> list = new ArrayList<>();
         for (int i = 0; i < limit; i++) {
-            VersionNode currentNode = dataManager.getVersionNode(currentVersionID);
+            VersionNode currentNode = dataManager.fetchVersionNode(currentVersionID);
             list.add(currentNode);
             if (currentVersionID.equals(currentNode.getParentsTable()[0])) {
                 break;
@@ -135,8 +135,8 @@ class Algorithms {
      */
     private static boolean isAncestorsEqual(@NotNull String nodeID1, @NotNull String nodeID2, int level,
                                             @NotNull DataManager manager) throws BrokenFileException, LostFileException {
-        String ancestorID1 = manager.getVersionNode(nodeID1).getParentsTable()[level];
-        String ancestorID2 = manager.getVersionNode(nodeID2).getParentsTable()[level];
+        String ancestorID1 = manager.fetchVersionNode(nodeID1).getParentsTable()[level];
+        String ancestorID2 = manager.fetchVersionNode(nodeID2).getParentsTable()[level];
         return ancestorID1.equals(ancestorID2);
     }
 
@@ -186,7 +186,7 @@ class Algorithms {
     @NotNull
     private static String getParent(@NotNull String nodeID, int level,
                                     @NotNull DataManager manager) throws BrokenFileException, LostFileException {
-        return manager.getVersionNode(nodeID).getParentsTable()[level];
+        return manager.fetchVersionNode(nodeID).getParentsTable()[level];
     }
 
     /**
@@ -200,6 +200,6 @@ class Algorithms {
      */
     private static int getDeepLevel(@NotNull String nodeID, @NotNull DataManager manager) throws BrokenFileException,
             LostFileException {
-        return manager.getVersionNode(nodeID).getDeepLevel();
+        return manager.fetchVersionNode(nodeID).getDeepLevel();
     }
 }

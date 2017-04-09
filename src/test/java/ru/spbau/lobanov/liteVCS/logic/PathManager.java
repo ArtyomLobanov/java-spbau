@@ -21,7 +21,7 @@ public class PathManager extends DataManager {
 
     @NotNull
     @Override
-    public VersionNode getVersionNode(@NotNull String id) {
+    public VersionNode fetchVersionNode(@NotNull String id) {
         int i = Integer.parseInt(id);
         return versionNodes.get(i);
     }

@@ -27,6 +27,7 @@ public class DataManager {
     private static final String PATH_TO_STAGE = concat(ROOT_DIRECTORY_NAME, "stage.lVCS");
     private static final String PATH_TO_HEADER = concat(ROOT_DIRECTORY_NAME, "header.lVCS");
 
+    @NotNull
     private final String workingDirectory;
 
     DataManager(@NotNull String workingDirectory) {
@@ -76,7 +77,7 @@ public class DataManager {
      * @throws BrokenFileException if file contained one of interesting object was not found
      */
     @NotNull
-    VersionNode getVersionNode(@NotNull String id) throws LostFileException, BrokenFileException {
+    VersionNode fetchVersionNode(@NotNull String id) throws LostFileException, BrokenFileException {
         return readObject(Paths.get(workingDirectory, PATH_TO_VERSIONS_FILES, id), VersionNode.class);
     }
 
@@ -84,7 +85,7 @@ public class DataManager {
      * Method allow to save VersionNode in file system
      *
      * @param versionNode object to save
-     * @return generated id, by which you can get that object late
+     * @return generated id, by which you can fetch that object late
      * @throws RepositoryNotInitializedException if file creating failed
      */
     @NotNull
@@ -103,7 +104,7 @@ public class DataManager {
      * @throws BrokenFileException if file contained one of interesting object was not found
      */
     @NotNull
-    ContentDescriptor getContentDescriptor(@NotNull String id) throws LostFileException, BrokenFileException {
+    ContentDescriptor fetchContentDescriptor(@NotNull String id) throws LostFileException, BrokenFileException {
         return readObject(Paths.get(workingDirectory, PATH_TO_CONTENT_DESCRIPTORS_FILES, id), ContentDescriptor.class);
     }
 
@@ -111,7 +112,7 @@ public class DataManager {
      * Method allow to save ContentDescriptor in file system
      *
      * @param contentDescriptor object to save
-     * @return generated id, by which you can get that object late
+     * @return generated id, by which you can fetch that object late
      * @throws RepositoryNotInitializedException if file creating failed
      */
     @NotNull
@@ -130,7 +131,7 @@ public class DataManager {
      * @throws BrokenFileException if file contained one of interesting object was not found
      */
     @NotNull
-    Commit getCommit(@NotNull String id) throws LostFileException, BrokenFileException {
+    Commit fetchCommit(@NotNull String id) throws LostFileException, BrokenFileException {
         return readObject(Paths.get(workingDirectory, PATH_TO_COMMITS_FILES, id), Commit.class);
     }
 
@@ -138,7 +139,7 @@ public class DataManager {
      * Method allow to save Commit in file system
      *
      * @param commit object to save
-     * @return generated id, by which you can get that object late
+     * @return generated id, by which you can fetch that object late
      * @throws RepositoryNotInitializedException if file creating failed
      */
     @NotNull
@@ -156,7 +157,7 @@ public class DataManager {
      * @throws LostFileException if file contained one of interesting object was corrupted
      */
     @NotNull
-    File getFile(@NotNull String id) throws LostFileException {
+    File fetchFile(@NotNull String id) throws LostFileException {
         File file = Paths.get(workingDirectory, PATH_TO_SAVED_FILES, id).toFile();
         if (!file.exists()) {
             throw new LostFileException("File wasn't found:" + file.getName(), null, file);
@@ -168,7 +169,7 @@ public class DataManager {
      * Method allow to save copy of file in file system
      *
      * @param file object to save
-     * @return generated id, by which you can get that object late
+     * @return generated id, by which you can fetch that object late
      * @throws RepositoryNotInitializedException if file creating failed
      */
     @NotNull
@@ -197,7 +198,6 @@ public class DataManager {
      * @param branch object to save
      * @throws RepositoryNotInitializedException if file creating failed
      */
-    @NotNull
     void addBranch(@NotNull Branch branch) throws RepositoryNotInitializedException {
         writeObject(Paths.get(workingDirectory, PATH_TO_BRANCHES, branch.getName()), branch);
     }
@@ -211,7 +211,7 @@ public class DataManager {
      * @throws BrokenFileException if file contained one of interesting object was not found
      */
     @NotNull
-    Branch getBranch(@NotNull String name) throws LostFileException, BrokenFileException {
+    Branch fetchBranch(@NotNull String name) throws LostFileException, BrokenFileException {
         return readObject(Paths.get(workingDirectory, PATH_TO_BRANCHES, name), Branch.class);
     }
 
@@ -292,9 +292,9 @@ public class DataManager {
      * @throws IOException         if file creating failed because of File System
      */
     void loadFiles(@NotNull String descriptorID) throws BrokenFileException, LostFileException, IOException {
-        ContentDescriptor descriptor = getContentDescriptor(descriptorID);
+        ContentDescriptor descriptor = fetchContentDescriptor(descriptorID);
         for (Entry<String, String> pair : descriptor.getFiles().entrySet()) {
-            File savedCopy = getFile(pair.getValue());
+            File savedCopy = fetchFile(pair.getValue());
             File targetFile = Paths.get(workingDirectory, pair.getKey()).toFile();
             Files.createParentDirs(targetFile);
             Files.touch(targetFile);
@@ -338,6 +338,17 @@ public class DataManager {
             throw new Error();
         }
 
+    }
+
+    /**
+     * Allow to get files from working directory
+     *
+     * @param filename target file
+     * @return File, associated with target file
+     */
+    @NotNull
+    File getFile(@NotNull String filename) {
+        return Paths.get(this.workingDirectory, filename).toFile();
     }
 
     /**

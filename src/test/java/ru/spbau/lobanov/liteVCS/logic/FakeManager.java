@@ -27,7 +27,7 @@ public class FakeManager extends DataManager {
 
     @NotNull
     @Override
-    public VersionNode getVersionNode(@NotNull String id) {
+    public VersionNode fetchVersionNode(@NotNull String id) {
         return map.get(id);
     }
 }

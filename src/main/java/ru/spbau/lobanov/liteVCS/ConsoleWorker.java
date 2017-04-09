@@ -36,58 +36,59 @@ public class ConsoleWorker {
     private static void execute(String command, String[] args) throws VersionControlSystemException,
             WrongNumberArgumentsException, IOException, UnknownCommandException {
         String path = Paths.get(System.getProperty("user.dir")).toString();
+        LiteVCS liteVCS = new LiteVCS(path);
         switch (command) {
             case "init":
                 checkArguments(0, args);
-                LiteVCS.init(path);
+                liteVCS.init();
                 break;
             case "add":
                 checkArguments(1, args);
-                LiteVCS.add(path, args[0]);
+                liteVCS.add(args[0]);
                 break;
             case "commit":
                 checkArguments(1, args);
-                LiteVCS.commit(path, args[0]);
+                liteVCS.commit(args[0]);
                 break;
             case "checkout":
                 checkArguments(1, args);
-                LiteVCS.checkout(path, args[0]);
+                liteVCS.checkout(args[0]);
                 break;
             case "clear":
                 checkArguments(0, args);
-                LiteVCS.clear(path);
+                liteVCS.clear();
                 break;
             case "create_branch":
                 checkArguments(1, args);
-                LiteVCS.createBranch(path, args[0]);
+                liteVCS.createBranch(args[0]);
                 break;
             case "remove_branch":
                 checkArguments(1, args);
-                LiteVCS.removeBranch(path, args[0]);
+                liteVCS.removeBranch(args[0]);
                 break;
             case "switch_branch":
                 checkArguments(1, args);
-                LiteVCS.switchBranch(path, args[0]);
+                liteVCS.switchBranch(args[0]);
                 break;
             case "merge_branch":
                 checkArguments(2, args);
-                LiteVCS.mergeBranch(path, args[0], args[1]);
+                liteVCS.mergeBranch(args[0], args[1]);
                 break;
             case "reset":
                 checkArguments(0, args);
-                LiteVCS.reset(path);
+                liteVCS.reset();
                 break;
             case "uninstall":
                 checkArguments(0, args);
-                LiteVCS.uninstall(path);
+                liteVCS.uninstall();
                 break;
             case "logs":
                 checkArguments(1, args);
-                printLogs(LiteVCS.logs(path, args[0]));
+                printLogs(liteVCS.logs(args[0]));
                 break;
             case "hello":
                 checkArguments(1, args);
-                LiteVCS.hello(path, args[0]);
+                liteVCS.hello(args[0]);
                 break;
             default:
                 throw new UnknownCommandException(command);
