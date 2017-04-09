@@ -19,6 +19,7 @@ public class PathManager extends DataManager {
         } catch (Exception ignored){}
     }
 
+    @NotNull
     @Override
     public VersionNode getVersionNode(@NotNull String id) {
         int i = Integer.parseInt(id);
