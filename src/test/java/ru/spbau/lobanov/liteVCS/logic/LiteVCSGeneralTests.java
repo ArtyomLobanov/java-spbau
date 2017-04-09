@@ -1,14 +1,6 @@
 package ru.spbau.lobanov.liteVCS.logic;
 
-import com.google.common.hash.Hashing;
-import com.google.common.io.Files;
 import org.junit.Test;
-
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 
 import static org.junit.Assert.assertEquals;
 
@@ -43,7 +35,6 @@ public class LiteVCSGeneralTests {
         liteVCS.init();
 
         dataManager.writeFile("a.txt", "versiona1");
-        String initialStateA = dataManager.hash("a.txt");
 
         dataManager.writeFile("b.txt", "versionb1");
         String initialStateB = dataManager.hash("b.txt");
