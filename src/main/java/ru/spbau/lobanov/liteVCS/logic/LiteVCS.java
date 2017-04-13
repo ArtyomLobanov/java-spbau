@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.logging.Logger;
 
 import static ru.spbau.lobanov.liteVCS.logic.LiteVCS.FileStatus.*;
 import static ru.spbau.lobanov.liteVCS.logic.LiteVCS.StageStatus.*;
@@ -18,6 +19,8 @@ import static ru.spbau.lobanov.liteVCS.logic.LiteVCS.StageStatus.*;
  * functionality of library by static methods
  */
 public class LiteVCS {
+
+    private static final Logger logger = Logger.getLogger(LiteVCS.class.getName());
 
     private final DataManager dataManager;
 
@@ -34,14 +37,15 @@ public class LiteVCS {
      * That name will be mentioned in following commits.
      *
      * @param author chosen name
-     * @throws LostFileException     if file contained one of interesting object was corrupted
-     * @throws BrokenFileException   if file contained one of interesting object was not found
+     * @throws LostFileException                 if file contained one of interesting object was corrupted
+     * @throws BrokenFileException               if file contained one of interesting object was not found
      * @throws RepositoryNotInitializedException if repository was not initialized
      */
     public void hello(@NotNull String author) throws BrokenFileException,
             LostFileException, RepositoryNotInitializedException {
         String branchName = dataManager.getHeader().getCurrentBranchName();
         dataManager.putHeader(new Header(author, branchName));
+        logger.fine("Author's name set (" + author + ")");
     }
 
     /**
@@ -49,17 +53,17 @@ public class LiteVCS {
      *
      * @throws RecreatingRepositoryException if repository was already created
      */
-    public void init() throws RecreatingRepositoryException,
-            RepositoryNotInitializedException {
+    public void init() throws RecreatingRepositoryException, IOException {
         dataManager.initRepository();
+        logger.fine("Repository successfully created");
     }
 
     /**
      * Method which add file to stage (list of files to commit).
      *
      * @param fileName relative path to target file
-     * @throws LostFileException     if file contained one of interesting object was corrupted
-     * @throws BrokenFileException   if file contained one of interesting object was not found
+     * @throws LostFileException                 if file contained one of interesting object was corrupted
+     * @throws BrokenFileException               if file contained one of interesting object was not found
      * @throws RepositoryNotInitializedException if repository was not initialized
      */
     public void add(@NotNull String fileName) throws RepositoryNotInitializedException,
@@ -70,6 +74,7 @@ public class LiteVCS {
                 .addFile(fileName, fileID)
                 .build();
         dataManager.putStage(updatedStage);
+        logger.fine("File " + fileName + " was added to stage area");
     }
 
     /**
@@ -91,6 +96,7 @@ public class LiteVCS {
                     .removeFile(fileName)
                     .build();
             dataManager.putStage(updatedStage);
+            logger.fine("File " + fileName + " will be finally removed from repository in next commit");
         }
         dataManager.removeFile(fileName);
     }
@@ -100,8 +106,8 @@ public class LiteVCS {
      * create Commit and add it to head of current branch
      *
      * @param message text which explain changes which was made in this commit
-     * @throws LostFileException     if file contained one of interesting object was corrupted
-     * @throws BrokenFileException   if file contained one of interesting object was not found
+     * @throws LostFileException                 if file contained one of interesting object was corrupted
+     * @throws BrokenFileException               if file contained one of interesting object was not found
      * @throws RepositoryNotInitializedException if repository was not initialized
      */
     public void commit(@NotNull String message) throws BrokenFileException,
@@ -125,6 +131,7 @@ public class LiteVCS {
         Branch updatedBranch = new Branch(versionID, currentBranch.getName());
         dataManager.addBranch(updatedBranch);
         dataManager.putStage(Stage.EMPTY);
+        logger.fine("New commit created (descriptor id = " + descriptorID + ")");
     }
 
     /**
@@ -141,6 +148,7 @@ public class LiteVCS {
         try {
             limit = Integer.parseInt(lengthLimit);
         } catch (NumberFormatException e) {
+            logger.fine("Failed to show history, because length limit has wrong format: " + lengthLimit);
             throw new IllegalArgumentException("Cant parse length limit", e);
         }
         Header header = dataManager.getHeader();
@@ -150,6 +158,7 @@ public class LiteVCS {
         for (VersionNode versionNode : versions) {
             commits.add(dataManager.fetchCommit(versionNode.getCommitID()));
         }
+        logger.fine("History of commit was shown (" + commits.size() + " commits)");
         return commits;
     }
 
@@ -158,20 +167,22 @@ public class LiteVCS {
      * equal to version of active branch
      *
      * @param branchName name of new branch
-     * @throws LostFileException     if file contained one of interesting object was corrupted
-     * @throws BrokenFileException   if file contained one of interesting object was not found
+     * @throws LostFileException                 if file contained one of interesting object was corrupted
+     * @throws BrokenFileException               if file contained one of interesting object was not found
      * @throws RepositoryNotInitializedException if repository was not initialized
-     * @throws ConflictNameException if branch with equal name is already exist
+     * @throws ConflictNameException             if branch with equal name is already exist
      */
     public void createBranch(@NotNull String branchName)
             throws BrokenFileException, LostFileException, ConflictNameException, RepositoryNotInitializedException {
         Header header = dataManager.getHeader();
         Branch currentBranch = dataManager.fetchBranch(header.getCurrentBranchName());
         if (dataManager.hasBranch(branchName)) {
+            logger.warning("Failed to create new branch because of name collision");
             throw new ConflictNameException("Branch with the same name is already exist");
         }
         Branch newBranch = new Branch(currentBranch.getVersionNodeID(), branchName);
         dataManager.addBranch(newBranch);
+        logger.fine("New branch successfully created (name = " + branchName + ")");
     }
 
     /**
@@ -188,9 +199,11 @@ public class LiteVCS {
             RemoveActiveBranchException, UnknownBranchException {
         Header header = dataManager.getHeader();
         if (header.getCurrentBranchName().equals(branchName)) {
+            logger.warning("Failed to remove branch because target branch was active");
             throw new RemoveActiveBranchException("Cant remove active branch");
         }
         if (!dataManager.hasBranch(branchName)) {
+            logger.warning("Failed to remove branch because branch with name=" + branchName + " wasn't found");
             throw new UnknownBranchException("Branch to remove doesn't exist");
         }
         dataManager.removeBranch(branchName);
@@ -204,25 +217,28 @@ public class LiteVCS {
      *
      * @param branchName name of branch to remove
      * @param message    text ehich will be used in commit
-     * @throws LostFileException     if file contained one of interesting object was corrupted
-     * @throws BrokenFileException   if file contained one of interesting object was not found
+     * @throws LostFileException                 if file contained one of interesting object was corrupted
+     * @throws BrokenFileException               if file contained one of interesting object was not found
      * @throws RepositoryNotInitializedException if repository was not initialized
-     * @throws IllegalBranchToMergeException if it's logically impossible to merge thar branches
-     * @throws UnknownBranchException        if branch with the same name wasn't found
-     * @throws UncommittedChangesException   if stage not empty
-     * @throws ConflictMergeException        if unresolvable conflict was found
+     * @throws IllegalBranchToMergeException     if it's logically impossible to merge thar branches
+     * @throws UnknownBranchException            if branch with the same name wasn't found
+     * @throws UncommittedChangesException       if stage not empty
+     * @throws ConflictMergeException            if unresolvable conflict was found
      */
     public void mergeBranch(@NotNull String branchName, @NotNull String message)
             throws BrokenFileException, LostFileException, IllegalBranchToMergeException, UnknownBranchException,
             UncommittedChangesException, ConflictMergeException, RepositoryNotInitializedException {
         Header header = dataManager.getHeader();
         if (header.getCurrentBranchName().equals(branchName)) {
+            logger.warning("Failed to merge branches. Cant merge branch with itself");
             throw new IllegalBranchToMergeException("Cant merge branch with itself");
         }
         if (!dataManager.hasBranch(branchName)) {
+            logger.warning("Failed to merge branches because one of them (" + branchName + " wasn't found");
             throw new UnknownBranchException("Branch to merge doesn't exist");
         }
         if (!dataManager.getStage().isEmpty()) {
+            logger.warning("Failed to merge branches. Stage wasn't empty");
             throw new UncommittedChangesException("Commit changes before merge");
         }
         String activeVersionID = dataManager.fetchBranch(header.getCurrentBranchName()).getVersionNodeID();
@@ -233,6 +249,7 @@ public class LiteVCS {
         ContentDescriptor lcaContent = toContentDescriptor(lcaVersionID);
         List<String> conflicts = checkConflicts(activeContent, sideContent, lcaContent);
         if (!conflicts.isEmpty()) {
+            logger.warning("Failed to merge branches because of difficult conflicts");
             throw new ConflictMergeException("Conflicts was found", conflicts);
         }
         ContentDescriptor mergedDescriptor = mergeContent(activeContent, sideContent, lcaContent);
@@ -243,6 +260,7 @@ public class LiteVCS {
         String versionNodeID = dataManager.addVersionNode(versionNode);
         Branch updatedBranch = new Branch(versionNodeID, header.getCurrentBranchName());
         dataManager.addBranch(updatedBranch);
+        logger.warning("Branch " + branchName + " was successfully merged into " + header.getCurrentBranchName());
     }
 
     /**
@@ -341,7 +359,7 @@ public class LiteVCS {
     /**
      * Sugar to simplify getting ContentDescriptor from ID of VersionNode
      *
-     * @param versionID   id of VersionNode
+     * @param versionID id of VersionNode
      * @return loaded ContentDescriptor
      * @throws LostFileException   if file contained one of interesting object was corrupted
      * @throws BrokenFileException if file contained one of interesting object was not found
@@ -365,25 +383,28 @@ public class LiteVCS {
 
     /**
      * @param branchName name of interesting branch
-     * @throws LostFileException     if file contained one of interesting object was corrupted
-     * @throws BrokenFileException   if file contained one of interesting object was not found
+     * @throws LostFileException                 if file contained one of interesting object was corrupted
+     * @throws BrokenFileException               if file contained one of interesting object was not found
      * @throws RepositoryNotInitializedException if repository was not initialized
-     * @throws SwitchOnCurrentBranchException if you try to switch on your current branch
-     * @throws UncommittedChangesException    if stage isn't empty before change branch
-     * @throws UnknownBranchException         if such branch wasn't found
-     * @throws IOException                    in case of some IO problems
+     * @throws SwitchOnCurrentBranchException    if you try to switch on your current branch
+     * @throws UncommittedChangesException       if stage isn't empty before change branch
+     * @throws UnknownBranchException            if such branch wasn't found
+     * @throws IOException                       in case of some IO problems
      */
     public void switchBranch(@NotNull String branchName)
             throws BrokenFileException, LostFileException, SwitchOnCurrentBranchException,
             UncommittedChangesException, UnknownBranchException, IOException, RepositoryNotInitializedException {
         Header header = dataManager.getHeader();
         if (header.getCurrentBranchName().equals(branchName)) {
+            logger.warning("Failed to switch branches. Target branch is already active");
             throw new SwitchOnCurrentBranchException("This branch is already chosen");
         }
         if (!dataManager.getStage().isEmpty()) {
+            logger.warning("Failed to switch branches. Stage area isn't empty");
             throw new UncommittedChangesException("Commit changes before switch branch");
         }
         if (!dataManager.hasBranch(branchName)) {
+            logger.warning("Failed to switch branches. Branch wasn't found (" + branchName + ")");
             throw new UnknownBranchException("Branch wasn't found");
         }
         Branch branch = dataManager.fetchBranch(branchName);
@@ -392,21 +413,23 @@ public class LiteVCS {
         checkout(lastCommit.getContentDescriptorID());
         Header updatedHeader = new Header(header.getAuthor(), branchName);
         dataManager.putHeader(updatedHeader);
+        logger.fine(branchName + " is active branch now");
     }
 
     /**
      * Restore saved copy from current Branch
      *
-     * @throws LostFileException     if file contained one of interesting object was corrupted
-     * @throws BrokenFileException   if file contained one of interesting object was not found
+     * @throws LostFileException                 if file contained one of interesting object was corrupted
+     * @throws BrokenFileException               if file contained one of interesting object was not found
      * @throws RepositoryNotInitializedException if repository was not initialized
-     * @throws IOException         in case of some IO problems
+     * @throws IOException                       in case of some IO problems
+     * @throws UnobservedFileException           in case if filename wasn't observed before
      */
     public void reset(String filename) throws BrokenFileException, LostFileException, IOException,
-            RepositoryNotInitializedException {
+            RepositoryNotInitializedException, UnobservedFileException {
         ContentDescriptor descriptor = getActualDescriptor();
         if (!descriptor.getFiles().containsKey(filename)) {
-            // todo
+            throw new UnobservedFileException("File " + filename + " have no saved versions");
         }
         dataManager.loadFile(descriptor.getFiles().get(filename), filename);
         Stage stage = dataManager.getStage();
@@ -415,6 +438,7 @@ public class LiteVCS {
                     .reset(filename)
                     .build();
             dataManager.putStage(updatedStage);
+            logger.fine("Information about " + filename + " was removed from stage");
         }
     }
 
@@ -433,10 +457,16 @@ public class LiteVCS {
         for (Map.Entry<String, String> file : contentDescriptor.getFiles().entrySet()) {
             dataManager.loadFile(file.getValue(), file.getKey());
         }
+        logger.fine("Checkout to " + descriptorID + " was successfully finished");
     }
 
     /**
      * This method remove all untracked files from working directory
+     *
+     * @throws LostFileException   if file contained one of interesting object was corrupted
+     * @throws BrokenFileException if file contained one of interesting object was not found
+     * @throws IOException         in case of some IO problems
+     *                             {@link NonexistentFileDeletionException in case if some error occurred  during cleaning working copy};
      */
     public void clean() throws IOException, BrokenFileException, LostFileException, NonexistentFileDeletionException {
         List<String> paths = dataManager.workingCopyFiles();
@@ -447,6 +477,7 @@ public class LiteVCS {
                 dataManager.removeFile(path);
             }
         }
+        logger.fine("Working directory was successfully cleaned");
     }
 
     /**
@@ -458,6 +489,13 @@ public class LiteVCS {
         dataManager.uninstallRepository();
     }
 
+    /**
+     * Return information about files in the stage area
+     *
+     * @return Map from File name to Status for every file, added to stage
+     * @throws LostFileException   if file contained one of interesting object was corrupted
+     * @throws BrokenFileException if file contained one of interesting object was not found
+     */
     public Map<String, StageStatus> stageStatus() throws BrokenFileException, LostFileException {
         Stage stage = dataManager.getStage();
         HashMap<String, StageStatus> result = new HashMap<>();
@@ -470,6 +508,14 @@ public class LiteVCS {
         return result;
     }
 
+
+    /**
+     * Return information about files in the working folder
+     *
+     * @return Map from File name to Status for every file belonging to folder or known in last commit
+     * @throws LostFileException   if file contained one of interesting object was corrupted
+     * @throws BrokenFileException if file contained one of interesting object was not found
+     */
     public Map<String, FileStatus> workingCopyStatus() throws BrokenFileException, LostFileException, IOException {
         List<String> paths = dataManager.workingCopyFiles();
         Stage stage = dataManager.getStage();
@@ -553,6 +599,13 @@ public class LiteVCS {
         }
     }
 
+    public static class UnobservedFileException extends VersionControlSystemException {
+        public UnobservedFileException(String message) {
+            super(message);
+        }
+    }
+
     public enum StageStatus {UPDATED, REMOVED}
+
     public enum FileStatus {CHANGED, DISAPPEARED, UNKNOWN, NOT_CHANGED}
 }

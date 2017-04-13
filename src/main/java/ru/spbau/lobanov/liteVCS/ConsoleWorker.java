@@ -6,6 +6,7 @@ import ru.spbau.lobanov.liteVCS.logic.DataManager.RecreatingRepositoryException;
 import ru.spbau.lobanov.liteVCS.logic.DataManager.RepositoryNotInitializedException;
 import ru.spbau.lobanov.liteVCS.logic.LiteVCS;
 import ru.spbau.lobanov.liteVCS.logic.LiteVCS.*;
+import ru.spbau.lobanov.liteVCS.logic.Logging;
 import ru.spbau.lobanov.liteVCS.logic.VersionControlSystemException;
 import ru.spbau.lobanov.liteVCS.primitives.Commit;
 
@@ -14,11 +15,20 @@ import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.logging.Level;
+import java.util.logging.LogManager;
+import java.util.logging.Logger;
 
 public class ConsoleWorker {
 
     private static final String COMMIT_PLACE_HOLDER = "\"%s\" by %s (node: %s)\n";
     private static final String STATUS_PLACE_HOLDER = "        \"%s\"  status=%s\n";
+
+    private final LiteVCS liteVCS;
+
+    public ConsoleWorker(LiteVCS liteVCS) {
+        this.liteVCS = liteVCS;
+    }
 
     /**
      * Sugar to simplify checking count of arguments
@@ -33,10 +43,8 @@ public class ConsoleWorker {
         }
     }
 
-    private static void execute(String command, String[] args) throws VersionControlSystemException,
+    private void execute(String command, String[] args) throws VersionControlSystemException,
             WrongNumberArgumentsException, IOException, UnknownCommandException {
-        String path = Paths.get(System.getProperty("user.dir")).toString();
-        LiteVCS liteVCS = new LiteVCS(path);
         switch (command) {
             case "init":
                 checkArguments(0, args);
@@ -103,15 +111,24 @@ public class ConsoleWorker {
         }
     }
 
-    public static void main(String[] args) {
+    public static void main(String... args) {
+        try {
+            Logging.setupLogging();
+        } catch (Logging.LoggingException e) {
+            System.out.println("Logging error: " + e.getMessage());
+            System.out.println("Original message: " + e.getCause().getMessage());
+            return;
+        }
         if (args.length == 0) {
             System.out.println("Error: empty command");
             return;
         }
         String[] functionArgs = new String[args.length - 1];
         System.arraycopy(args, 1, functionArgs, 0, functionArgs.length);
+        String targetPath = Paths.get(System.getProperty("user.dir")).toString();
+        ConsoleWorker consoleWorker = new ConsoleWorker(new LiteVCS(targetPath));
         try {
-            execute(args[0], functionArgs);
+            consoleWorker.execute(args[0], functionArgs);
         } catch (ConflictMergeException e) {
             System.out.println("Conflicts were found:");
             for (String path : e.getConflicts()) {
