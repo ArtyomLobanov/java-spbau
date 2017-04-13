@@ -481,6 +481,7 @@ public class LiteVCS {
                 .addAll(stage)
                 .build();
 
+
         Map<String, String> files = stagedDescriptor.getFiles();
         for (String path : paths) {
             if (!files.containsKey(path)) {

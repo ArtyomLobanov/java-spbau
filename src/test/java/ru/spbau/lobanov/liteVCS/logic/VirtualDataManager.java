@@ -5,9 +5,7 @@ import ru.spbau.lobanov.liteVCS.primitives.*;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class VirtualDataManager extends DataManager {
 
@@ -37,7 +35,7 @@ public class VirtualDataManager extends DataManager {
     }
 
     public static String hash(File file) {
-        return "fl" + file.hashCode();
+        return "" + file.hashCode();
     }
 
     void initRepository() throws RecreatingRepositoryException {
@@ -105,9 +103,13 @@ public class VirtualDataManager extends DataManager {
     @NotNull
     String addFile(@NotNull String path) throws RepositoryNotInitializedException {
         VirtualFile file = (VirtualFile) workingCopy.get(path);
-        String id = "fl" + file.hashCode();
+        String id = "" + file.hashCode();
         files.put(id, file);
         return id;
+    }
+
+    void removeFile(String path) {
+        workingCopy.remove(path);
     }
 
     void addBranch(@NotNull Branch branch) throws RepositoryNotInitializedException {
@@ -148,6 +150,10 @@ public class VirtualDataManager extends DataManager {
         workingCopy.put(targetPath, fetchFile(fileID));
     }
 
+    List<String> workingCopyFiles() {
+        return new ArrayList<>(workingCopy.keySet());
+    }
+
     void clearWorkingCopy() {
         workingCopy.clear();
     }
@@ -174,7 +180,8 @@ public class VirtualDataManager extends DataManager {
         workingCopy.put(filename, f);
     }
 
-    String hash(String filename) {
-        return "" + workingCopy.get(filename).hashCode();
+    String hashFile(String filename) {
+        VirtualFile file = (VirtualFile) workingCopy.get(filename);
+        return "" + file.hashCode();
     }
 }

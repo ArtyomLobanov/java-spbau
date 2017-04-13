@@ -1,10 +1,16 @@
 package ru.spbau.lobanov.liteVCS.logic;
 
 import org.junit.Test;
+import ru.spbau.lobanov.liteVCS.logic.LiteVCS.FileStatus;
+import ru.spbau.lobanov.liteVCS.logic.LiteVCS.StageStatus;
 import ru.spbau.lobanov.liteVCS.primitives.*;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import java.util.Map;
+
+import static org.junit.Assert.*;
+import static ru.spbau.lobanov.liteVCS.logic.LiteVCS.FileStatus.*;
+import static ru.spbau.lobanov.liteVCS.logic.LiteVCS.StageStatus.REMOVED;
+import static ru.spbau.lobanov.liteVCS.logic.LiteVCS.StageStatus.UPDATED;
 
 public class LiteVCSTest {
     @Test
@@ -189,14 +195,111 @@ public class LiteVCSTest {
 
         liteVCS.checkout(descriptorID);
         assertEquals(1, dataManager.workingCopy.size());
-        assertEquals("data".hashCode() + "", dataManager.hash("a.txt"));
+        assertEquals("data".hashCode() + "", dataManager.hashFile("a.txt"));
     }
 
     @Test
-    public void switchBranch2() throws Exception {
-        DataManager dm = new DataManager(System.getProperty("user.dir"));
-        System.out.println(System.getProperty("user.dir"));
-        System.out.println(dm.workingCopyFiles());
+    public void clean() throws Exception {
+        VirtualDataManager dataManager = new VirtualDataManager();
+        LiteVCS liteVCS = new LiteVCS(dataManager);
+
+        liteVCS.init();
+
+        dataManager.writeFile("a.txt", "data");
+        liteVCS.add("a.txt");
+        liteVCS.commit("message");
+
+        dataManager.writeFile("b.txt", "data2");
+        liteVCS.add("b.txt");
+        dataManager.writeFile("b.txt", "data3");
+
+        dataManager.writeFile("c.txt", "data3");
+
+        liteVCS.clean();
+        assertEquals(2, dataManager.workingCopy.size());
+        assertTrue(dataManager.workingCopy.containsKey("a.txt"));
+        assertTrue(dataManager.workingCopy.containsKey("b.txt"));
+        assertEquals("data3".hashCode(), dataManager.workingCopy.get("b.txt").hashCode());
     }
 
+    @Test
+    public void remove() throws Exception {
+        VirtualDataManager dataManager = new VirtualDataManager();
+        LiteVCS liteVCS = new LiteVCS(dataManager);
+
+        liteVCS.init();
+
+        dataManager.writeFile("a.txt", "data");
+        liteVCS.add("a.txt");
+        liteVCS.commit("message");
+
+        liteVCS.remove("a.txt");
+        assertFalse(dataManager.workingCopy.containsKey("a.txt"));
+        liteVCS.reset("a.txt");
+        assertTrue(dataManager.workingCopy.containsKey("a.txt"));
+
+        liteVCS.remove("a.txt");
+        liteVCS.commit("1");
+        assertFalse(dataManager.workingCopy.containsKey("a.txt"));
+        String descriptionID = liteVCS.history("1").get(0).getContentDescriptorID();
+        liteVCS.checkout(descriptionID);
+        assertFalse(dataManager.workingCopy.containsKey("a.txt"));
+    }
+
+    @Test
+    public void reset() throws Exception {
+        VirtualDataManager dataManager = new VirtualDataManager();
+        LiteVCS liteVCS = new LiteVCS(dataManager);
+
+        liteVCS.init();
+
+        dataManager.writeFile("a.txt", "data");
+        liteVCS.add("a.txt");
+        liteVCS.commit("message");
+
+        dataManager.writeFile("a.txt", "data2");
+        liteVCS.add("a.txt");
+
+        liteVCS.reset("a.txt");
+        assertEquals("data".hashCode(), dataManager.workingCopy.get("a.txt").hashCode());
+        assertFalse(dataManager.getStage().getChangedFiles().containsKey("a.txt"));
+    }
+
+    @Test
+    public void workingCopyStatus() throws Exception {
+        VirtualDataManager dataManager = new VirtualDataManager();
+        LiteVCS liteVCS = new LiteVCS(dataManager);
+        liteVCS.init();
+
+        dataManager.writeFile("a.txt", "data");
+        Map<String, FileStatus> result = liteVCS.workingCopyStatus();
+        assertEquals(UNKNOWN, result.get("a.txt"));
+
+        liteVCS.add("a.txt");
+        result = liteVCS.workingCopyStatus();
+        assertEquals(NOT_CHANGED, result.get("a.txt"));
+
+        dataManager.writeFile("a.txt", "data2");
+        result = liteVCS.workingCopyStatus();
+        assertEquals(CHANGED, result.get("a.txt"));
+
+        dataManager.removeFile("a.txt");
+        result = liteVCS.workingCopyStatus();
+        assertEquals(DISAPPEARED, result.get("a.txt"));
+    }
+
+    @Test
+    public void stageStatus() throws Exception {
+        VirtualDataManager dataManager = new VirtualDataManager();
+        LiteVCS liteVCS = new LiteVCS(dataManager);
+        liteVCS.init();
+
+        dataManager.writeFile("a.txt", "data");
+        liteVCS.add("a.txt");
+        Map<String, StageStatus> result = liteVCS.stageStatus();
+
+        liteVCS.remove("a.txt");
+        result = liteVCS.stageStatus();
+        assertEquals(REMOVED, result.get("a.txt"));
+    }
 }

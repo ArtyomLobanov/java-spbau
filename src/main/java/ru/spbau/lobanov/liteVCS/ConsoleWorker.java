@@ -18,6 +18,7 @@ import java.util.Map.Entry;
 public class ConsoleWorker {
 
     private static final String COMMIT_PLACE_HOLDER = "\"%s\" by %s (node: %s)\n";
+    private static final String STATUS_PLACE_HOLDER = "        \"%s\"  status=%s\n";
 
     /**
      * Sugar to simplify checking count of arguments
@@ -157,11 +158,11 @@ public class ConsoleWorker {
         System.out.println("Status of repository:");
         System.out.println("    Stage:");
         for (Entry<String, StageStatus> entry : stageStatus.entrySet()) {
-            System.out.println("        " + entry.getKey() + " status=" + entry.getValue());
+            System.out.printf(STATUS_PLACE_HOLDER, entry.getKey(), entry.getValue());
         }
         System.out.println("    Working copy:");
         for (Entry<String, FileStatus> entry : workingCopyStatus.entrySet()) {
-            System.out.println("        " + entry.getKey() + " status=" + entry.getValue());
+            System.out.printf(STATUS_PLACE_HOLDER, entry.getKey(), entry.getValue());
         }
         System.out.println("---------------------------------------------");
     }
