@@ -2,17 +2,16 @@ package ru.spbau.lobanov.liteVCS.logic;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import ru.spbau.lobanov.liteVCS.logic.DataManager.BrokenFileException;
-import ru.spbau.lobanov.liteVCS.logic.DataManager.LostFileException;
-import ru.spbau.lobanov.liteVCS.logic.DataManager.RecreatingRepositoryException;
-import ru.spbau.lobanov.liteVCS.logic.DataManager.RepositoryNotInitializedException;
+import ru.spbau.lobanov.liteVCS.logic.DataManager.*;
 import ru.spbau.lobanov.liteVCS.primitives.*;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
+
+import static ru.spbau.lobanov.liteVCS.logic.LiteVCS.FileStatus.*;
+import static ru.spbau.lobanov.liteVCS.logic.LiteVCS.StageStatus.*;
 
 /**
  * Special class which provides all the main
@@ -63,20 +62,37 @@ public class LiteVCS {
      * @throws BrokenFileException   if file contained one of interesting object was not found
      * @throws RepositoryNotInitializedException if repository was not initialized
      */
-    public void add(@NotNull String fileName)
-            throws RepositoryNotInitializedException, LostFileException, BrokenFileException {
-        File file = dataManager.getFile(fileName);
-        ContentDescriptor stage = dataManager.getStage();
-        ContentDescriptor updatedStage;
-        if (!file.isFile()) {
-            throw new Error("Possible to add files only");
-        }
-        String fileID = dataManager.addFile(file);
-        updatedStage = ContentDescriptor.builder()
-                .addAllFiles(stage)
+    public void add(@NotNull String fileName) throws RepositoryNotInitializedException,
+            LostFileException, BrokenFileException, NonexistentFileAdditionException {
+        Stage stage = dataManager.getStage();
+        String fileID = dataManager.addFile(fileName);
+        Stage updatedStage = stage.change()
                 .addFile(fileName, fileID)
                 .build();
         dataManager.putStage(updatedStage);
+    }
+
+    /**
+     * Method which mark file as removed at stage and remove that file from working directory
+     *
+     * @param fileName relative path to target file
+     * @throws RepositoryNotInitializedException if repository was not initialized
+     */
+    public void remove(@NotNull String fileName) throws RepositoryNotInitializedException,
+            LostFileException, BrokenFileException, NonexistentFileDeletionException {
+        Header header = dataManager.getHeader();
+        Branch currentBranch = dataManager.fetchBranch(header.getCurrentBranchName());
+        VersionNode currentVersion = dataManager.fetchVersionNode(currentBranch.getVersionNodeID());
+        Commit lastCommit = dataManager.fetchCommit(currentVersion.getCommitID());
+        ContentDescriptor descriptor = dataManager.fetchContentDescriptor(lastCommit.getContentDescriptorID());
+        Stage stage = dataManager.getStage();
+        if (descriptor.getFiles().containsKey(fileName) || stage.getChangedFiles().containsKey(fileName)) {
+            Stage updatedStage = stage.change()
+                    .removeFile(fileName)
+                    .build();
+            dataManager.putStage(updatedStage);
+        }
+        dataManager.removeFile(fileName);
     }
 
     /**
@@ -95,11 +111,11 @@ public class LiteVCS {
         VersionNode currentVersion = dataManager.fetchVersionNode(currentBranch.getVersionNodeID());
         Commit lastCommit = dataManager.fetchCommit(currentVersion.getCommitID());
         ContentDescriptor currentDescriptor = dataManager.fetchContentDescriptor(lastCommit.getContentDescriptorID());
-        ContentDescriptor stage = dataManager.getStage();
+        Stage stage = dataManager.getStage();
 
         ContentDescriptor updatedDescriptor = ContentDescriptor.builder()
-                .addAllFiles(currentDescriptor)
-                .addAllFiles(stage)
+                .addAll(currentDescriptor)
+                .addAll(stage)
                 .build();
         String descriptorID = dataManager.addContentDescriptor(updatedDescriptor);
         Commit newCommit = new Commit(descriptorID, message, System.currentTimeMillis(), header.getAuthor());
@@ -108,7 +124,7 @@ public class LiteVCS {
         String versionID = dataManager.addVersionNode(newVersion);
         Branch updatedBranch = new Branch(versionID, currentBranch.getName());
         dataManager.addBranch(updatedBranch);
-        dataManager.putStage(ContentDescriptor.EMPTY);
+        dataManager.putStage(Stage.EMPTY);
     }
 
     /**
@@ -206,7 +222,7 @@ public class LiteVCS {
         if (!dataManager.hasBranch(branchName)) {
             throw new UnknownBranchException("Branch to merge doesn't exist");
         }
-        if (!dataManager.getStage().getFiles().isEmpty()) {
+        if (!dataManager.getStage().isEmpty()) {
             throw new UncommittedChangesException("Commit changes before merge");
         }
         String activeVersionID = dataManager.fetchBranch(header.getCurrentBranchName()).getVersionNodeID();
@@ -338,6 +354,15 @@ public class LiteVCS {
         return dataManager.fetchContentDescriptor(commit.getContentDescriptorID());
     }
 
+    @NotNull
+    private ContentDescriptor getActualDescriptor() throws BrokenFileException, LostFileException {
+        Header header = dataManager.getHeader();
+        Branch currentBranch = dataManager.fetchBranch(header.getCurrentBranchName());
+        VersionNode currentVersion = dataManager.fetchVersionNode(currentBranch.getVersionNodeID());
+        Commit lastCommit = dataManager.fetchCommit(currentVersion.getCommitID());
+        return dataManager.fetchContentDescriptor(lastCommit.getContentDescriptorID());
+    }
+
     /**
      * @param branchName name of interesting branch
      * @throws LostFileException     if file contained one of interesting object was corrupted
@@ -355,8 +380,7 @@ public class LiteVCS {
         if (header.getCurrentBranchName().equals(branchName)) {
             throw new SwitchOnCurrentBranchException("This branch is already chosen");
         }
-        ContentDescriptor contentDescriptor = dataManager.getStage();
-        if (!contentDescriptor.getFiles().isEmpty()) {
+        if (!dataManager.getStage().isEmpty()) {
             throw new UncommittedChangesException("Commit changes before switch branch");
         }
         if (!dataManager.hasBranch(branchName)) {
@@ -371,25 +395,31 @@ public class LiteVCS {
     }
 
     /**
-     * Restore saved copies from current Branch
+     * Restore saved copy from current Branch
      *
      * @throws LostFileException     if file contained one of interesting object was corrupted
      * @throws BrokenFileException   if file contained one of interesting object was not found
      * @throws RepositoryNotInitializedException if repository was not initialized
      * @throws IOException         in case of some IO problems
      */
-    public void reset() throws BrokenFileException, LostFileException, IOException,
+    public void reset(String filename) throws BrokenFileException, LostFileException, IOException,
             RepositoryNotInitializedException {
-        dataManager.putStage(ContentDescriptor.EMPTY);
-        Header header = dataManager.getHeader();
-        Branch branch = dataManager.fetchBranch(header.getCurrentBranchName());
-        VersionNode versionNode = dataManager.fetchVersionNode(branch.getVersionNodeID());
-        Commit lastCommit = dataManager.fetchCommit(versionNode.getCommitID());
-        checkout(lastCommit.getContentDescriptorID());
+        ContentDescriptor descriptor = getActualDescriptor();
+        if (!descriptor.getFiles().containsKey(filename)) {
+            // todo
+        }
+        dataManager.loadFile(descriptor.getFiles().get(filename), filename);
+        Stage stage = dataManager.getStage();
+        if (stage.getChangedFiles().containsKey(filename) || stage.getRemovedFiles().contains(filename)) {
+            Stage updatedStage = stage.change()
+                    .reset(filename)
+                    .build();
+            dataManager.putStage(updatedStage);
+        }
     }
 
     /**
-     * Restore saved file from given ContentDescriptor
+     * Restore saved files from given ContentDescriptor
      *
      * @param descriptorID id of interesting description
      * @throws LostFileException   if file contained one of interesting object was corrupted
@@ -399,14 +429,24 @@ public class LiteVCS {
     public void checkout(@NotNull String descriptorID)
             throws IOException, BrokenFileException, LostFileException {
         dataManager.clearWorkingCopy();
-        dataManager.loadFiles(descriptorID);
+        ContentDescriptor contentDescriptor = dataManager.fetchContentDescriptor(descriptorID);
+        for (Map.Entry<String, String> file : contentDescriptor.getFiles().entrySet()) {
+            dataManager.loadFile(file.getValue(), file.getKey());
+        }
     }
 
     /**
-     * This method remove all file from working directory
+     * This method remove all untracked files from working directory
      */
-    public void clear() {
-        dataManager.clearWorkingCopy();
+    public void clean() throws IOException, BrokenFileException, LostFileException, NonexistentFileDeletionException {
+        List<String> paths = dataManager.workingCopyFiles();
+        Stage stage = dataManager.getStage();
+        ContentDescriptor headVersion = getActualDescriptor();
+        for (String path : paths) {
+            if (!stage.getChangedFiles().containsKey(path) && !headVersion.getFiles().containsKey(path)) {
+                dataManager.removeFile(path);
+            }
+        }
     }
 
     /**
@@ -416,6 +456,50 @@ public class LiteVCS {
      */
     public void uninstall() throws RepositoryNotInitializedException {
         dataManager.uninstallRepository();
+    }
+
+    public Map<String, StageStatus> stageStatus() throws BrokenFileException, LostFileException {
+        Stage stage = dataManager.getStage();
+        HashMap<String, StageStatus> result = new HashMap<>();
+        for (String s : stage.getChangedFiles().keySet()) {
+            result.put(s, UPDATED);
+        }
+        for (String s : stage.getRemovedFiles()) {
+            result.put(s, REMOVED);
+        }
+        return result;
+    }
+
+    public Map<String, FileStatus> workingCopyStatus() throws BrokenFileException, LostFileException, IOException {
+        List<String> paths = dataManager.workingCopyFiles();
+        Stage stage = dataManager.getStage();
+        ContentDescriptor headVersion = getActualDescriptor();
+        HashMap<String, FileStatus> result = new HashMap<>();
+
+        ContentDescriptor stagedDescriptor = ContentDescriptor.builder()
+                .addAll(headVersion)
+                .addAll(stage)
+                .build();
+
+        Map<String, String> files = stagedDescriptor.getFiles();
+        for (String path : paths) {
+            if (!files.containsKey(path)) {
+                result.put(path, UNKNOWN);
+                continue;
+            }
+            String hash = dataManager.hashFile(path);
+            if (hash.equals(files.get(path))) {
+                result.put(path, NOT_CHANGED);
+            } else {
+                result.put(path, CHANGED);
+            }
+        }
+        for (String path : files.keySet()) {
+            if (!result.containsKey(path)) {
+                result.put(path, DISAPPEARED);
+            }
+        }
+        return result;
     }
 
     public static class SwitchOnCurrentBranchException extends VersionControlSystemException {
@@ -467,4 +551,7 @@ public class LiteVCS {
             super(message);
         }
     }
+
+    public enum StageStatus {UPDATED, REMOVED}
+    public enum FileStatus {CHANGED, DISAPPEARED, UNKNOWN, NOT_CHANGED}
 }

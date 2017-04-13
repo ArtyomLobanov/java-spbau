@@ -24,7 +24,7 @@ public class LiteVCSGeneralTests {
         liteVCS.switchBranch("master");
         assertEquals(initialState, dataManager.hash("a.txt"));
         liteVCS.mergeBranch("br", "mesage");
-        liteVCS.reset();
+        liteVCS.reset("a.txt");
         assertEquals(lastState, dataManager.hash("a.txt"));
     }
 
@@ -62,7 +62,8 @@ public class LiteVCSGeneralTests {
         assertEquals(initialStateB, dataManager.hash("b.txt"));
 
         liteVCS.mergeBranch("br", "mesage");
-        liteVCS.reset();
+        liteVCS.reset("a.txt");
+        liteVCS.reset("b.txt");
 
 
         assertEquals(resultStateA, dataManager.hash("a.txt"));

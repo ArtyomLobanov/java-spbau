@@ -5,16 +5,15 @@ import ru.spbau.lobanov.liteVCS.logic.DataManager.LostFileException;
 import ru.spbau.lobanov.liteVCS.logic.DataManager.RecreatingRepositoryException;
 import ru.spbau.lobanov.liteVCS.logic.DataManager.RepositoryNotInitializedException;
 import ru.spbau.lobanov.liteVCS.logic.LiteVCS;
-import ru.spbau.lobanov.liteVCS.logic.LiteVCS.ConflictMergeException;
-import ru.spbau.lobanov.liteVCS.logic.LiteVCS.RemoveActiveBranchException;
-import ru.spbau.lobanov.liteVCS.logic.LiteVCS.UncommittedChangesException;
-import ru.spbau.lobanov.liteVCS.logic.LiteVCS.UnknownBranchException;
+import ru.spbau.lobanov.liteVCS.logic.LiteVCS.*;
 import ru.spbau.lobanov.liteVCS.logic.VersionControlSystemException;
 import ru.spbau.lobanov.liteVCS.primitives.Commit;
 
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 public class ConsoleWorker {
 
@@ -54,9 +53,13 @@ public class ConsoleWorker {
                 checkArguments(1, args);
                 liteVCS.checkout(args[0]);
                 break;
-            case "clear":
+            case "clean":
                 checkArguments(0, args);
-                liteVCS.clear();
+                liteVCS.clean();
+                break;
+            case "status":
+                checkArguments(0, args);
+                printStatus(liteVCS.stageStatus(), liteVCS.workingCopyStatus());
                 break;
             case "create_branch":
                 checkArguments(1, args);
@@ -75,8 +78,12 @@ public class ConsoleWorker {
                 liteVCS.mergeBranch(args[0], args[1]);
                 break;
             case "reset":
-                checkArguments(0, args);
-                liteVCS.reset();
+                checkArguments(1, args);
+                liteVCS.reset(args[0]);
+                break;
+            case "remove":
+                checkArguments(1, args);
+                liteVCS.remove(args[0]);
                 break;
             case "uninstall":
                 checkArguments(0, args);
@@ -141,6 +148,22 @@ public class ConsoleWorker {
             System.out.printf(COMMIT_PLACE_HOLDER, commit.getCommitMessage(), commit.getAuthor(),
                     commit.getContentDescriptorID());
         }
+    }
+
+
+
+    private static void printStatus(Map<String, StageStatus> stageStatus, Map<String, FileStatus> workingCopyStatus) {
+        System.out.println("---------------------------------------------");
+        System.out.println("Status of repository:");
+        System.out.println("    Stage:");
+        for (Entry<String, StageStatus> entry : stageStatus.entrySet()) {
+            System.out.println("        " + entry.getKey() + " status=" + entry.getValue());
+        }
+        System.out.println("    Working copy:");
+        for (Entry<String, FileStatus> entry : workingCopyStatus.entrySet()) {
+            System.out.println("        " + entry.getKey() + " status=" + entry.getValue());
+        }
+        System.out.println("---------------------------------------------");
     }
 
     public static class WrongNumberArgumentsException extends Exception {

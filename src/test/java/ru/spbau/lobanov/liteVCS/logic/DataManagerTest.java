@@ -112,22 +112,23 @@ public class DataManagerTest {
     @Test
     public void putAndGetStage() throws Exception {
         DataManager dataManager = new DataManager(workspace);
-        ContentDescriptor stage = ContentDescriptor
+        Stage stage = Stage
                 .builder()
                 .addFile("1", "2")
                 .addFile("hello", "world")
                 .build();
         dataManager.putStage(stage);
-        ContentDescriptor stage1 = dataManager.getStage();
-        assertEquals(stage.getFiles(), stage1.getFiles());
+        Stage stage1 = dataManager.getStage();
+        assertEquals(stage.getChangedFiles(), stage1.getChangedFiles());
+        assertEquals(stage.getRemovedFiles(), stage1.getRemovedFiles());
     }
-
-    @Test
-    public void getFile() throws Exception {
-        DataManager dataManager = new DataManager(workspace);
-        File file = dataManager.getFile(Paths.get(".liteVCS", "stage.lVCS").toString());
-        assertTrue(file.exists());
-        assertEquals("stage.lVCS", file.getName());
-    }
+//
+//    @Test
+//    public void getFile() throws Exception {
+//        DataManager dataManager = new DataManager(workspace);
+//        File file = dataManager.getFile(Paths.get(".liteVCS", "stage.lVCS").toString());
+//        assertTrue(file.exists());
+//        assertEquals("stage.lVCS", file.getName());
+//    }
 
 }

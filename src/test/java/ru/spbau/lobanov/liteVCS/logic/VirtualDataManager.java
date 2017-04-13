@@ -20,7 +20,7 @@ public class VirtualDataManager extends DataManager {
     HashMap<String, VersionNode> versions = new HashMap<>();
     HashMap<String, VirtualFile> files = new HashMap<>();
     Header header;
-    ContentDescriptor stage;
+    Stage stage;
     HashMap<String, File> workingCopy = new HashMap<>();
 
 
@@ -55,7 +55,7 @@ public class VirtualDataManager extends DataManager {
             addBranch(master);
             Header header = new Header("Unknown", master.getName());
             putHeader(header);
-            putStage(ContentDescriptor.EMPTY);
+            putStage(Stage.EMPTY);
         } catch (RepositoryNotInitializedException e) {
             throw new Error("");
         }
@@ -103,9 +103,10 @@ public class VirtualDataManager extends DataManager {
     }
 
     @NotNull
-    String addFile(@NotNull File file) throws RepositoryNotInitializedException {
+    String addFile(@NotNull String path) throws RepositoryNotInitializedException {
+        VirtualFile file = (VirtualFile) workingCopy.get(path);
         String id = "fl" + file.hashCode();
-        files.put(id, (VirtualFile) file);
+        files.put(id, file);
         return id;
     }
 
@@ -135,19 +136,16 @@ public class VirtualDataManager extends DataManager {
     }
 
     @NotNull
-    ContentDescriptor getStage() throws LostFileException, BrokenFileException {
+    Stage getStage() throws LostFileException, BrokenFileException {
         return stage;
     }
 
-    void putStage(@NotNull ContentDescriptor stage) throws RepositoryNotInitializedException {
+    void putStage(@NotNull Stage stage) throws RepositoryNotInitializedException {
         this.stage = stage;
     }
 
-    void loadFiles(@NotNull String descriptorID) throws BrokenFileException, LostFileException, IOException {
-        ContentDescriptor descriptor = fetchContentDescriptor(descriptorID);
-        for (Map.Entry<String, String> pair : descriptor.getFiles().entrySet()) {
-            workingCopy.put(pair.getKey(), fetchFile(pair.getValue()));
-        }
+    void loadFile(@NotNull String fileID, @NotNull String targetPath) throws LostFileException, IOException {
+        workingCopy.put(targetPath, fetchFile(fileID));
     }
 
     void clearWorkingCopy() {
@@ -169,11 +167,6 @@ public class VirtualDataManager extends DataManager {
         header = null;
         stage = null;
         isInitialized = false;
-    }
-
-    @NotNull
-    File getFile(@NotNull String filename) {
-        return workingCopy.get(filename);
     }
 
     void writeFile(String filename, String value) {
