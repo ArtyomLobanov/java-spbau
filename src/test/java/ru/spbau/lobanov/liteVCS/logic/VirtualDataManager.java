@@ -5,9 +5,7 @@ import ru.spbau.lobanov.liteVCS.primitives.*;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class VirtualDataManager extends DataManager {
 
@@ -20,7 +18,7 @@ public class VirtualDataManager extends DataManager {
     HashMap<String, VersionNode> versions = new HashMap<>();
     HashMap<String, VirtualFile> files = new HashMap<>();
     Header header;
-    ContentDescriptor stage;
+    Stage stage;
     HashMap<String, File> workingCopy = new HashMap<>();
 
 
@@ -37,7 +35,7 @@ public class VirtualDataManager extends DataManager {
     }
 
     public static String hash(File file) {
-        return "fl" + file.hashCode();
+        return "" + file.hashCode();
     }
 
     void initRepository() throws RecreatingRepositoryException {
@@ -55,7 +53,7 @@ public class VirtualDataManager extends DataManager {
             addBranch(master);
             Header header = new Header("Unknown", master.getName());
             putHeader(header);
-            putStage(ContentDescriptor.EMPTY);
+            putStage(Stage.EMPTY);
         } catch (RepositoryNotInitializedException e) {
             throw new Error("");
         }
@@ -103,10 +101,15 @@ public class VirtualDataManager extends DataManager {
     }
 
     @NotNull
-    String addFile(@NotNull File file) throws RepositoryNotInitializedException {
-        String id = "fl" + file.hashCode();
-        files.put(id, (VirtualFile) file);
+    String addFile(@NotNull String path) throws RepositoryNotInitializedException {
+        VirtualFile file = (VirtualFile) workingCopy.get(path);
+        String id = "" + file.hashCode();
+        files.put(id, file);
         return id;
+    }
+
+    void removeFile(String path) {
+        workingCopy.remove(path);
     }
 
     void addBranch(@NotNull Branch branch) throws RepositoryNotInitializedException {
@@ -135,19 +138,20 @@ public class VirtualDataManager extends DataManager {
     }
 
     @NotNull
-    ContentDescriptor getStage() throws LostFileException, BrokenFileException {
+    Stage getStage() throws LostFileException, BrokenFileException {
         return stage;
     }
 
-    void putStage(@NotNull ContentDescriptor stage) throws RepositoryNotInitializedException {
+    void putStage(@NotNull Stage stage) throws RepositoryNotInitializedException {
         this.stage = stage;
     }
 
-    void loadFiles(@NotNull String descriptorID) throws BrokenFileException, LostFileException, IOException {
-        ContentDescriptor descriptor = fetchContentDescriptor(descriptorID);
-        for (Map.Entry<String, String> pair : descriptor.getFiles().entrySet()) {
-            workingCopy.put(pair.getKey(), fetchFile(pair.getValue()));
-        }
+    void loadFile(@NotNull String fileID, @NotNull String targetPath) throws LostFileException, IOException {
+        workingCopy.put(targetPath, fetchFile(fileID));
+    }
+
+    List<String> workingCopyFiles() {
+        return new ArrayList<>(workingCopy.keySet());
     }
 
     void clearWorkingCopy() {
@@ -171,17 +175,13 @@ public class VirtualDataManager extends DataManager {
         isInitialized = false;
     }
 
-    @NotNull
-    File getFile(@NotNull String filename) {
-        return workingCopy.get(filename);
-    }
-
     void writeFile(String filename, String value) {
         VirtualFile f = new VirtualFile(value);
         workingCopy.put(filename, f);
     }
 
-    String hash(String filename) {
-        return "" + workingCopy.get(filename).hashCode();
+    String hashFile(String filename) {
+        VirtualFile file = (VirtualFile) workingCopy.get(filename);
+        return "" + file.hashCode();
     }
 }

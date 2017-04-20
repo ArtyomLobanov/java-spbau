@@ -1,12 +1,17 @@
 package ru.spbau.lobanov.liteVCS.logic;
 
+import com.google.common.io.Files;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import ru.spbau.lobanov.liteVCS.primitives.*;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
 
 import static org.junit.Assert.*;
 
@@ -70,13 +75,16 @@ public class DataManagerTest {
     }
 
     @Test
-    public void fetchFile() throws Exception {
-
-    }
-
-    @Test
-    public void addFile() throws Exception {
-
+    public void addAndLoadFile() throws Exception {
+        File file = Paths.get(workspace, "a.txt").toFile();
+        Files.touch(file);
+        DataManager dataManager = new DataManager(workspace);
+        String id = dataManager.addFile("a.txt");
+        dataManager.removeFile("a.txt");
+        assertFalse(file.exists());
+        dataManager.loadFile(id, "a.txt");
+        assertTrue(file.exists());
+        assertEquals(id, dataManager.hashFile("a.txt"));
     }
 
     @Test
@@ -112,22 +120,73 @@ public class DataManagerTest {
     @Test
     public void putAndGetStage() throws Exception {
         DataManager dataManager = new DataManager(workspace);
-        ContentDescriptor stage = ContentDescriptor
+        Stage stage = Stage
                 .builder()
                 .addFile("1", "2")
                 .addFile("hello", "world")
+                .removeFile("3")
                 .build();
         dataManager.putStage(stage);
-        ContentDescriptor stage1 = dataManager.getStage();
-        assertEquals(stage.getFiles(), stage1.getFiles());
+        Stage stage1 = dataManager.getStage();
+        assertEquals(stage.getChangedFiles(), stage1.getChangedFiles());
+        assertEquals(stage.getRemovedFiles(), stage1.getRemovedFiles());
     }
 
     @Test
-    public void getFile() throws Exception {
+    public void removeFile() throws Exception {
+        String relativePath = Paths.get("folder", "folder2", "a.txt").toString();
+        Path path = Paths.get(workspace, relativePath);
+
+        Files.createParentDirs(path.toFile());
+        Files.touch(path.toFile());
+        Files.touch(Paths.get(workspace, "folder", "b.txt").toFile());
+
         DataManager dataManager = new DataManager(workspace);
-        File file = dataManager.getFile(Paths.get(".liteVCS", "stage.lVCS").toString());
-        assertTrue(file.exists());
-        assertEquals("stage.lVCS", file.getName());
+        dataManager.removeFile(relativePath);
+        assertFalse(path.toFile().exists());
+        assertFalse(path.getParent().toFile().exists());
+        assertTrue(path.getParent().getParent().toFile().exists());
     }
 
+    @Test
+    public void workingCopy() throws Exception {
+        File file = Paths.get(workspace, "a.txt").toFile();
+        Files.touch(file);
+
+        file = Paths.get(workspace, "folder1", "a.txt").toFile();
+        Files.createParentDirs(file);
+        Files.touch(file);
+
+        file = Paths.get(workspace, "folder1", "folder2", "b.txt").toFile();
+        Files.createParentDirs(file);
+        Files.touch(file);
+
+        List<String> wc = (new DataManager(workspace)).workingCopyFiles();
+        wc.sort(String::compareTo);
+
+        assertEquals(3, wc.size());
+        assertTrue(wc.contains(Paths.get("a.txt").toString()));
+        assertTrue(wc.contains(Paths.get("folder1", "a.txt").toString()));
+        assertTrue(wc.contains(Paths.get("folder1", "folder2", "b.txt").toString()));
+    }
+
+    @Test
+    public void hashFileTest() throws Exception {
+        PrintWriter out = new PrintWriter(Paths.get(workspace, "a.txt").toFile());
+        out.println("hello");
+        out.close();
+
+        out = new PrintWriter(Paths.get(workspace, "a2.txt").toFile());
+        out.println("hello");
+        out.close();
+
+        out = new PrintWriter(Paths.get(workspace, "b.txt").toFile());
+        out.println("olleh");
+        out.close();
+
+        DataManager dataManager = new DataManager(workspace);
+        assertEquals(dataManager.hashFile("a.txt"), dataManager.hashFile("a.txt"));
+        assertEquals(dataManager.hashFile("a.txt"), dataManager.hashFile("a2.txt"));
+        assertNotEquals(dataManager.hashFile("a2.txt"), dataManager.hashFile("b.txt"));
+    }
 }

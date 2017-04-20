@@ -46,8 +46,15 @@ public class ContentDescriptor implements Serializable {
         }
 
         @NotNull
-        public Builder addAllFiles(@NotNull ContentDescriptor contentDescriptor) {
+        public Builder addAll(@NotNull ContentDescriptor contentDescriptor) {
             files.putAll(contentDescriptor.files);
+            return this;
+        }
+
+        @NotNull
+        public Builder addAll(@NotNull Stage stage) {
+            files.putAll(stage.getChangedFiles());
+            files.keySet().removeAll(stage.getRemovedFiles());
             return this;
         }
 

@@ -8,14 +8,18 @@ import ru.spbau.lobanov.liteVCS.primitives.*;
 import java.io.*;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Map.Entry;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
+import java.util.logging.Logger;
 
 /**
  * This class is adapter between logic part of LiteVCS
  * and data storage
  */
 public class DataManager {
+
+    private static final Logger logger = Logger.getLogger(DataManager.class.getName());
 
     private static final String ROOT_DIRECTORY_NAME = ".liteVCS";
     private static final String PATH_TO_VERSIONS_FILES = concat(ROOT_DIRECTORY_NAME, "versions");
@@ -39,7 +43,7 @@ public class DataManager {
      *
      * @throws RecreatingRepositoryException if repository was already created
      */
-    void initRepository() throws RecreatingRepositoryException {
+    void initRepository() throws RecreatingRepositoryException, IOException {
         File rootDirectory = Paths.get(workingDirectory, DataManager.ROOT_DIRECTORY_NAME).toFile();
         if (rootDirectory.exists()) {
             throw new RecreatingRepositoryException("Repository was already created here:" + workingDirectory);
@@ -50,7 +54,7 @@ public class DataManager {
                 Paths.get(workingDirectory, DataManager.PATH_TO_VERSIONS_FILES).toFile().mkdirs() &&
                 Paths.get(workingDirectory, DataManager.PATH_TO_BRANCHES).toFile().mkdirs();
         if (!success) {
-            throw new Error("Unexpected error during directories creating");
+            throw new IOException("Unexpected error during directories creating");
         }
         try {
             String initialDescriptorID = addContentDescriptor(ContentDescriptor.EMPTY);
@@ -62,7 +66,7 @@ public class DataManager {
             addBranch(master);
             Header header = new Header("Unknown", master.getName());
             putHeader(header);
-            putStage(ContentDescriptor.EMPTY);
+            putStage(Stage.EMPTY);
         } catch (RepositoryNotInitializedException e) {
             throw new Error("Unexpected error during repository initialization");
         }
@@ -157,7 +161,7 @@ public class DataManager {
      * @throws LostFileException if file contained one of interesting object was corrupted
      */
     @NotNull
-    File fetchFile(@NotNull String id) throws LostFileException {
+    private File fetchFile(@NotNull String id) throws LostFileException {
         File file = Paths.get(workingDirectory, PATH_TO_SAVED_FILES, id).toFile();
         if (!file.exists()) {
             throw new LostFileException("File wasn't found:" + file.getName(), null, file);
@@ -168,18 +172,19 @@ public class DataManager {
     /**
      * Method allow to save copy of file in file system
      *
-     * @param file object to save
+     * @param relativePath relative path to file which will bw saved
      * @return generated id, by which you can fetch that object late
      * @throws RepositoryNotInitializedException if file creating failed
+     * @throws NonexistentFileAdditionException  if file wasn't found
      */
     @NotNull
-    String addFile(@NotNull File file) throws RepositoryNotInitializedException {
-        String hash;
-        try {
-            hash = Files.hash(file, Hashing.sha256()).toString() + ".sc";
-        } catch (IOException e) {
-            throw new Error("Unknown exception during hash creating");
+    String addFile(@NotNull String relativePath) throws RepositoryNotInitializedException,
+            NonexistentFileAdditionException {
+        File file = Paths.get(workingDirectory, relativePath).toFile();
+        if (!file.exists() || !file.isFile()) {
+            throw new NonexistentFileAdditionException("File " + relativePath + " doesn't exist");
         }
+        String hash = hashFile(relativePath);
         File savedCopy = Paths.get(workingDirectory, PATH_TO_SAVED_FILES, hash).toFile();
         try {
             if (savedCopy.createNewFile()) {
@@ -187,6 +192,79 @@ public class DataManager {
             }
         } catch (IOException e) {
             throw new RepositoryNotInitializedException("Directory wasn't found:" + PATH_TO_SAVED_FILES, e);
+        }
+        return hash;
+    }
+
+    /**
+     * Method allow to remove files from working folder
+     *
+     * @param relativePath relative path to file which will bw saved
+     * @throws NonexistentFileDeletionException if target file doesn't exist
+     */
+    void removeFile(String relativePath) throws NonexistentFileDeletionException {
+        File targetFile = Paths.get(workingDirectory, relativePath).toFile();
+        if (!targetFile.isFile() || !targetFile.delete()) {
+            throw new NonexistentFileDeletionException("File " + relativePath + " doesn't exist");
+        }
+        Path path = Paths.get(relativePath).getParent();
+        while (path != null) {
+            File folder = Paths.get(workingDirectory, path.toString()).toFile();
+            File[] files = folder.listFiles();
+            if (files == null || files.length != 0 || !folder.delete()) {
+                break;
+            }
+            path = path.getParent();
+        }
+    }
+
+    /**
+     * Method allow to get list of files, which are in the working folder
+     *
+     * @return list of relative paths to every file
+     * @throws IOException if file creating failed
+     */
+    List<String> workingCopyFiles() throws IOException {
+        List<String> paths = new ArrayList<>();
+        File[] files = Paths.get(workingDirectory).toFile().listFiles();
+        if (files == null){
+            throw new IOException("Cant get children of folder");
+        }
+        Path mainDirectory = Paths.get(workingDirectory, ROOT_DIRECTORY_NAME);
+        for (File f : files) {
+            if (!f.toPath().startsWith(mainDirectory)) {
+                walkFileTree(f, paths);
+            }
+        }
+        return paths;
+    }
+
+    private void walkFileTree(File file, List<String> paths) throws IOException {
+        if (file.isFile()) {
+            paths.add(Paths.get(workingDirectory).relativize(file.toPath()).toString());
+        } else {
+            File[] files = file.listFiles();
+            if (files == null) {
+                throw new IOException("Cant get children of folder:" + file.toPath());
+            }
+            for (File f : files) {
+                walkFileTree(f, paths);
+            }
+        }
+    }
+
+    /**
+     * Method allow to calculate hash of files
+     *
+     * @param path relative path to target file
+     * @return HashCode
+     */
+    String hashFile(String path) {
+        String hash;
+        try {
+            hash = Files.hash(Paths.get(workingDirectory, path).toFile(), Hashing.sha256()).toString() + ".sc";
+        } catch (IOException e) {
+            throw new RuntimeException("Unexpected error during hashing");
         }
         return hash;
     }
@@ -263,43 +341,39 @@ public class DataManager {
     /**
      * Method allow to load Stage descriptor
      *
-     * @return stage ContentDescriptor
+     * @return stage current stage
      * @throws LostFileException   if file contained one of interesting object was corrupted
      * @throws BrokenFileException if file contained one of interesting object was not found
      */
     @NotNull
-    ContentDescriptor getStage() throws LostFileException, BrokenFileException {
-        return readObject(Paths.get(workingDirectory, PATH_TO_STAGE), ContentDescriptor.class);
+    Stage getStage() throws LostFileException, BrokenFileException {
+        return readObject(Paths.get(workingDirectory, PATH_TO_STAGE), Stage.class);
     }
 
     /**
-     * Method allow to save Stage descriptor
+     * Method allow to save Stage
      *
      * @param stage object to save
      * @throws RepositoryNotInitializedException if file saving failed
      */
-    void putStage(@NotNull ContentDescriptor stage) throws RepositoryNotInitializedException {
+    void putStage(@NotNull Stage stage) throws RepositoryNotInitializedException {
         writeObject(Paths.get(workingDirectory, PATH_TO_STAGE), stage);
     }
 
     /**
-     * Method allow to create all files and folder in which
-     * they are contained, specified by ContentDescriptor
+     * Clone file from repository to working copy
      *
-     * @param descriptorID identifier of ContentDescriptor
-     * @throws LostFileException   if file contained one of interesting object was corrupted
-     * @throws BrokenFileException if file contained one of interesting object was not found
-     * @throws IOException         if file creating failed because of File System
+     * @param fileID     identifier of saved file
+     * @param targetPath desired relative path to new copy (including file name)
+     * @throws LostFileException if file contained one of interesting object was corrupted
+     * @throws IOException       if file creating failed because of File System
      */
-    void loadFiles(@NotNull String descriptorID) throws BrokenFileException, LostFileException, IOException {
-        ContentDescriptor descriptor = fetchContentDescriptor(descriptorID);
-        for (Entry<String, String> pair : descriptor.getFiles().entrySet()) {
-            File savedCopy = fetchFile(pair.getValue());
-            File targetFile = Paths.get(workingDirectory, pair.getKey()).toFile();
-            Files.createParentDirs(targetFile);
-            Files.touch(targetFile);
-            Files.copy(savedCopy, targetFile);
-        }
+    void loadFile(@NotNull String fileID, @NotNull String targetPath) throws LostFileException, IOException {
+        File savedCopy = fetchFile(fileID);
+        File targetFile = Paths.get(workingDirectory, targetPath).toFile();
+        Files.createParentDirs(targetFile);
+        Files.touch(targetFile);
+        Files.copy(savedCopy, targetFile);
     }
 
     /**
@@ -338,17 +412,6 @@ public class DataManager {
             throw new Error();
         }
 
-    }
-
-    /**
-     * Allow to get files from working directory
-     *
-     * @param filename target file
-     * @return File, associated with target file
-     */
-    @NotNull
-    File getFile(@NotNull String filename) {
-        return Paths.get(this.workingDirectory, filename).toFile();
     }
 
     /**
@@ -411,6 +474,7 @@ public class DataManager {
         if (!expectedType.isInstance(o)) {
             throw new BrokenFileException("Unexpected data was found in file: " + path.toString(), path.toFile());
         }
+        logger.fine("Instance of " + expectedType.getName() + " was successfully loaded");
         return expectedType.cast(o);
     }
 
@@ -431,12 +495,13 @@ public class DataManager {
         } catch (IOException e) {
             throw new Error("Unknown error occurred while writing the file: " + path.toString(), e);
         }
+        logger.fine("Instance of " + object.getClass().getName() + " was successfully saved");
     }
 
     /**
      * Special method to simplify definition of service paths
      *
-     * @param root main directory
+     * @param root  main directory
      * @param paths relative paths
      * @return concatenation of paths
      */
@@ -489,6 +554,18 @@ public class DataManager {
 
     public static class RecreatingRepositoryException extends VersionControlSystemException {
         RecreatingRepositoryException(String message) {
+            super(message);
+        }
+    }
+
+    public static class NonexistentFileAdditionException extends VersionControlSystemException {
+        NonexistentFileAdditionException(String message) {
+            super(message);
+        }
+    }
+
+    public static class NonexistentFileDeletionException extends VersionControlSystemException {
+        NonexistentFileDeletionException(String message) {
             super(message);
         }
     }

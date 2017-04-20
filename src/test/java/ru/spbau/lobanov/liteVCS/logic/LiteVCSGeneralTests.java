@@ -12,20 +12,20 @@ public class LiteVCSGeneralTests {
         LiteVCS liteVCS = new LiteVCS(dataManager);
         liteVCS.init();
         dataManager.writeFile("a.txt", "versiona1");
-        String initialState = dataManager.hash("a.txt");
+        String initialState = dataManager.hashFile("a.txt");
         liteVCS.add("a.txt");
         liteVCS.commit("commit #1");
         liteVCS.createBranch("br");
         liteVCS.switchBranch("br");
         dataManager.writeFile("a.txt", "versiona2");
-        String lastState = dataManager.hash("a.txt");
+        String lastState = dataManager.hashFile("a.txt");
         liteVCS.add("a.txt");
         liteVCS.commit("commit2");
         liteVCS.switchBranch("master");
-        assertEquals(initialState, dataManager.hash("a.txt"));
+        assertEquals(initialState, dataManager.hashFile("a.txt"));
         liteVCS.mergeBranch("br", "mesage");
-        liteVCS.reset();
-        assertEquals(lastState, dataManager.hash("a.txt"));
+        liteVCS.reset("a.txt");
+        assertEquals(lastState, dataManager.hashFile("a.txt"));
     }
 
     @Test
@@ -37,7 +37,7 @@ public class LiteVCSGeneralTests {
         dataManager.writeFile("a.txt", "versiona1");
 
         dataManager.writeFile("b.txt", "versionb1");
-        String initialStateB = dataManager.hash("b.txt");
+        String initialStateB = dataManager.hashFile("b.txt");
 
         liteVCS.add("a.txt");
         liteVCS.add("b.txt");
@@ -46,26 +46,27 @@ public class LiteVCSGeneralTests {
 
 
         dataManager.writeFile("a.txt", "versiona2");
-        String resultStateA = dataManager.hash("a.txt");
+        String resultStateA = dataManager.hashFile("a.txt");
         liteVCS.add("a.txt");
         liteVCS.commit("commit #2");
 
         liteVCS.switchBranch("br");
 
         dataManager.writeFile("b.txt", "versionb2");
-        String resultStateB = dataManager.hash("b.txt");
+        String resultStateB = dataManager.hashFile("b.txt");
         liteVCS.add("b.txt");
         liteVCS.commit("commit3");
 
         liteVCS.switchBranch("master");
-        assertEquals(resultStateA, dataManager.hash("a.txt"));
-        assertEquals(initialStateB, dataManager.hash("b.txt"));
+        assertEquals(resultStateA, dataManager.hashFile("a.txt"));
+        assertEquals(initialStateB, dataManager.hashFile("b.txt"));
 
         liteVCS.mergeBranch("br", "mesage");
-        liteVCS.reset();
+        liteVCS.reset("a.txt");
+        liteVCS.reset("b.txt");
 
 
-        assertEquals(resultStateA, dataManager.hash("a.txt"));
-        assertEquals(resultStateB, dataManager.hash("b.txt"));
+        assertEquals(resultStateA, dataManager.hashFile("a.txt"));
+        assertEquals(resultStateB, dataManager.hashFile("b.txt"));
     }
 }

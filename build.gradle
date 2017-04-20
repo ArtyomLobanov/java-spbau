@@ -18,4 +18,8 @@ dependencies {
     compile group: 'com.google.guava', name: 'guava', version: '21.0'
 
     compile group: 'org.jetbrains', name: 'annotations', version: '13.0'
+
+    // https://mvnrepository.com/artifact/org.mockito/mockito-all
+    compile group: 'org.mockito', name: 'mockito-all', version: '1.10.19'
+
 }
