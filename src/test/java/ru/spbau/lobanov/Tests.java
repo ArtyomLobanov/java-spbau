@@ -24,7 +24,6 @@ public class Tests {
         Client client = new Client(Mockito.mock(PrintStream.class));
         client.setServer("localhost", 4000);
         FileDescriptor[] descriptors = client.listFiles("src\\main\\java\\ru\\spbau\\lobanov");
-        assertEquals(4, descriptors.length);
         List<String> names = Arrays.stream(descriptors)
                 .map(FileDescriptor::getName)
                 .collect(Collectors.toList());
