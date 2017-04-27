@@ -43,7 +43,7 @@ public class Server {
         }
     }
 
-    public void start(int port) throws ServerException {
+    public void start(int port) throws ServerException   {
         synchronized (threadLock) {
             if (thread != null) {
                 throw new ServerException("Try to start server, but it's already started");

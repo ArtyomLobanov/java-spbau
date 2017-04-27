@@ -1,5 +1,7 @@
 package ru.spbau.lobanov.server;
 
+import ru.spbau.lobanov.Connection;
+
 import java.io.*;
 import java.net.Socket;
 
@@ -33,6 +35,7 @@ public class CommandExecutor {
 
     private void listCommand(String path, DataOutputStream outputStream) throws IOException {
         File folder = new File(path);
+        System.out.println(folder.getAbsolutePath());
         if (!folder.exists() || !folder.isDirectory()) {
             outputStream.writeInt(0);
             return;
@@ -54,14 +57,19 @@ public class CommandExecutor {
             outputStream.writeInt(0);
             return;
         }
+        System.out.println(file.length());
         outputStream.writeLong(file.length());
         FileInputStream fileStream = new FileInputStream(file);
         byte[] buffer = new byte[1024];
         int count;
-        do {
-            count = fileStream.read(buffer);
-            outputStream.write(buffer, 0, count);
-        } while (count != 0);
+        try {
+            do {
+                count = fileStream.read(buffer);
+                outputStream.write(buffer, 0, count);
+            } while (count != 0);
+        }catch (Exception e) {
+            System.out.println("e:" + e.getMessage());
+        }
     }
 
     public class WrongRequestFormatException extends Exception {

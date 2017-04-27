@@ -1,4 +1,4 @@
-package ru.spbau.lobanov.server;
+package ru.spbau.lobanov;
 
 import java.io.DataInputStream;
 import java.io.DataOutput;
@@ -12,8 +12,8 @@ import java.net.Socket;
 public class Connection implements AutoCloseable {
 
     private final Socket socket;
-    final DataInputStream in;
-    final DataOutputStream out;
+    public final DataInputStream in;
+    public final DataOutputStream out;
 
     public Connection(Socket socket) throws IOException {
         this.socket = socket;
