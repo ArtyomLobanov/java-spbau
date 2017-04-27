@@ -5,7 +5,9 @@ import ru.spbau.lobanov.Connection;
 import java.io.*;
 import java.net.Socket;
 
-
+/**
+ * Class which help Server to execute commands
+ */
 public class CommandExecutor {
 
     public static final int LIST_COMMAND = 1;
@@ -17,6 +19,12 @@ public class CommandExecutor {
         this.errorStream = errorStream;
     }
 
+    /**
+     * Parse command from socket's input stream, execute it
+     * and send by socket's output stream.
+     *
+     * @param socket socket connected with client
+     */
     void execute(Socket socket) {
         try (Connection connection = new Connection(socket)) {
             int commandCode = connection.in.readInt();
@@ -33,6 +41,14 @@ public class CommandExecutor {
         }
     }
 
+    /**
+     * Realize logic of listCommand: write down list of
+     * files in interesting directory to outputStream
+     *
+     * @param path         path to interesting folder
+     * @param outputStream stream to write down results
+     * @throws IOException if some I/O problems occurred
+     */
     private void listCommand(String path, DataOutputStream outputStream) throws IOException {
         File folder = new File(path);
         System.out.println(folder.getAbsolutePath());
@@ -51,6 +67,14 @@ public class CommandExecutor {
         }
     }
 
+    /**
+     * Realize logic of getCommand: copy content of
+     * interesting file to outputStream
+     *
+     * @param path         path to interesting file
+     * @param outputStream stream to write down results
+     * @throws IOException if some I/O problems occurred
+     */
     private void getCommand(String path, DataOutputStream outputStream) throws IOException {
         File file = new File(path);
         if (!file.exists() || !file.isFile()) {
@@ -67,7 +91,7 @@ public class CommandExecutor {
                 count = fileStream.read(buffer);
                 outputStream.write(buffer, 0, count);
             } while (count != 0);
-        }catch (Exception e) {
+        } catch (Exception e) {
             System.out.println("e:" + e.getMessage());
         }
     }

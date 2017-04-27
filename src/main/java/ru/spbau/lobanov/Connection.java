@@ -7,7 +7,8 @@ import java.io.IOException;
 import java.net.Socket;
 
 /**
- * Created by Артём on 27.04.2017.
+ * Class which help to work with sockets
+ * Contained wrappers under socket's input/output streams
  */
 public class Connection implements AutoCloseable {
 
@@ -26,6 +27,9 @@ public class Connection implements AutoCloseable {
         }
     }
 
+    /**
+     * Close both streams and socket
+     */
     @Override
     public void close() {
         if (in != null) {

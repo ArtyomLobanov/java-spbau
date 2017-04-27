@@ -10,13 +10,11 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 /**
- * Created by Артём on 27.04.2017.
+ *
  */
 public class Server {
 
     private volatile Thread thread;
-
-    private final Object threadLock = new Object();
 
     private final PrintStream logStream;
 
@@ -25,35 +23,48 @@ public class Server {
         this.logStream = logStream;
     }
 
-    public void stop() throws ServerException {
-        synchronized (threadLock) {
-            if (thread == null) {
-                throw new ServerException("Try to stop server, but it isn't running now");
-            }
-            thread.interrupt();
-            thread = null;
-            logStream.println("Server successfully stopped");
+    /**
+     * Stop server, interrupt ServerRunner's thread
+     *
+     * @throws ServerException if server isn't running now
+     */
+    public synchronized void stop() throws ServerException {
+        if (thread == null) {
+            throw new ServerException("Try to stop server, but it isn't running now");
         }
+        thread.interrupt();
+        thread = null;
+        logStream.println("Server successfully stopped");
     }
 
-    private void aborted() {
-        synchronized (threadLock) {
-            thread = null;
-            logStream.println("Server aborted");
-        }
+    /**
+     * Should be called in case if ServerRunner
+     * was stopped with error
+     */
+    private synchronized void aborted() {
+        thread = null;
+        logStream.println("Server aborted");
     }
 
-    public void start(int port) throws ServerException   {
-        synchronized (threadLock) {
-            if (thread != null) {
-                throw new ServerException("Try to start server, but it's already started");
-            }
-            thread = new Thread(new ServerRunner(port));
-            thread.start();
-            logStream.println("Server successfully started");
+    /**
+     * Start server, run ServerRunner's thread
+     *
+     * @param port port which will be used by server
+     * @throws ServerException if server is already running now
+     */
+    public synchronized void start(int port) throws ServerException {
+        if (thread != null) {
+            throw new ServerException("Try to start server, but it's already started");
         }
+        thread = new Thread(new ServerRunner(port));
+        thread.start();
+        logStream.println("Server successfully started");
     }
 
+    /**
+     * Help class, which create ServerSocket, creates connections
+     * and call CommandExecutor to process commands
+     */
     private class ServerRunner implements Runnable {
 
         private final int port;
@@ -74,7 +85,8 @@ public class Server {
                         threadPool.execute(() -> {
                             commandExecutor.execute(connection);
                         });
-                    } catch (SocketTimeoutException ignored) {}
+                    } catch (SocketTimeoutException ignored) {
+                    }
                 }
             } catch (Exception exception) {
                 logStream.println(exception.getMessage());
@@ -85,7 +97,10 @@ public class Server {
         }
     }
 
-    public boolean isRunning() {
+    /**
+     * @return true if server is active
+     */
+    public synchronized boolean isRunning() {
         return thread != null && thread.isAlive();
     }
 

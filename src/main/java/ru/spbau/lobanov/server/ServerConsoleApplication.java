@@ -3,9 +3,10 @@ package ru.spbau.lobanov.server;
 import java.util.Scanner;
 
 /**
- * Created by Артём on 27.04.2017.
+ * Console application - wrapper under Server-class
+ * Execute commands from standard input
  */
-public class ConsoleApplication {
+public class ServerConsoleApplication {
     public static void main(String[] args)  {
         Server server = new Server(System.out);
         Scanner scanner = new Scanner(System.in);

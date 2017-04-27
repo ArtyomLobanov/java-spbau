@@ -3,9 +3,10 @@ package ru.spbau.lobanov.client;
 import java.util.Scanner;
 
 /**
- * Created by Артём on 27.04.2017.
+ * Console application - wrapper under Client-class
+ * Execute commands from standard input
  */
-public class ConsoleApplication {
+public class ClientConsoleApplication {
     public static void main(String[] args)  {
         Client client = new Client(System.out);
         Scanner scanner = new Scanner(System.in);

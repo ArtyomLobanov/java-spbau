@@ -7,6 +7,9 @@ import ru.spbau.lobanov.server.CommandExecutor;
 import java.io.*;
 import java.net.Socket;
 
+/**
+ * Class which provides an api to work as client
+ */
 public class Client {
     private final PrintStream logStream;
     private String host;
@@ -16,19 +19,36 @@ public class Client {
         this.logStream = logStream;
     }
 
-    public synchronized void setServer(String host, int port) throws ClientException, IOException {
+    /**
+     * Method to set server's address
+     *
+     * @param host server's host
+     * @param port server's port
+     */
+    public synchronized void setServer(String host, int port)  {
         this.host = host;
         this.port = port;
         logStream.println("Server address updated");
     }
 
-    public synchronized void clearServer() throws ClientException, IOException {
+    /**
+     * Remove information about current server
+     */
+    public synchronized void clearServer() {
         host = null;
         port = -1;
         logStream.println("Server address cleared");
     }
 
-    public synchronized FileDescriptor[] listFiles(String path) throws ClientException, IOException {
+    /**
+     * Open connection to current server, request list of files
+     * in directory defined by path-argument
+     *
+     * @param path path to interesting folder
+     * @throws ClientException if some problems with connection appeared
+     * @return array of FileDescriptors contained information about files in interesting folder
+     */
+    public synchronized FileDescriptor[] listFiles(String path) throws ClientException {
         FileDescriptor[] descriptors;
         try (Socket socket = new Socket(host, port);
              Connection connection = new Connection(socket)) {
@@ -40,11 +60,22 @@ public class Client {
             for (int i = 0; i < count; i++) {
                 descriptors[i] = new FileDescriptor(connection.in.readUTF(), path, connection.in.readBoolean());
             }
+        } catch (IOException e) {
+            throw new ClientException("Failed to open connection to server");
         }
         logStream.println("ListFile-request successfully finished");
         return descriptors;
     }
 
+    /**
+     * Open connection to current server,
+     * copy file from server to you computer
+     *
+     * @param path path to interesting file
+     * @param target expected path to copy
+     * @throws ClientException if some problems with connection appeared
+     * @return File associated with your copy
+     */
     public synchronized File getFile(String path, String target) throws ClientException {
         File file = new File(target);
         try {
