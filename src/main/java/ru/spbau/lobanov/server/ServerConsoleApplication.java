@@ -10,11 +10,14 @@ public class ServerConsoleApplication {
     public static void main(String[] args)  {
         Server server = new Server(System.out);
         Scanner scanner = new Scanner(System.in);
-        while (scanner.hasNext()) {
+        while (true) {
+            System.out.print("server>");
             try {
-                String command = scanner.next();
-                if (command.equals("start") && scanner.hasNextInt()) {
+                String command = scanner.nextLine().trim();
+                if (command.equals("start")) {
+                    System.out.print("port:");
                     server.start(scanner.nextInt());
+                    scanner.nextLine();
                 } else if (command.equals("stop")) {
                     server.stop();
                 } else if (command.equals("exit")) {
@@ -26,7 +29,6 @@ public class ServerConsoleApplication {
                     }
                 } else {
                     System.out.println("Unknown command or wrong format");
-                    scanner.nextLine();
                 }
             } catch (Exception e) {
                 System.out.println(e.getMessage());

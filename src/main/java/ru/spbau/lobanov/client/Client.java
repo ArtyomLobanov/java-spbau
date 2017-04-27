@@ -49,6 +49,9 @@ public class Client {
      * @return array of FileDescriptors contained information about files in interesting folder
      */
     public synchronized FileDescriptor[] listFiles(String path) throws ClientException {
+        if (host == null && port == -1) {
+            throw new ClientException("Target server wasn't set");
+        }
         FileDescriptor[] descriptors;
         try (Socket socket = new Socket(host, port);
              Connection connection = new Connection(socket)) {
@@ -77,6 +80,9 @@ public class Client {
      * @return File associated with your copy
      */
     public synchronized File getFile(String path, String target) throws ClientException {
+        if (host == null && port == -1) {
+            throw new ClientException("Target server wasn't set");
+        }
         File file = new File(target);
         try {
             Files.createParentDirs(file);
