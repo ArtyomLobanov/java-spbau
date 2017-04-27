@@ -1,0 +1,21 @@
+group 'my_projects'
+version '1.0-SNAPSHOT'
+
+apply plugin: 'java'
+
+repositories {
+    mavenCentral()
+}
+
+//jar {
+//    from {
+//        configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }
+//    }
+//    manifest { attributes 'Main-Class': 'ru.spbau.lobanov.liteVCS.ConsoleWorker' }
+//}
+
+dependencies {
+    testCompile group: 'junit', name: 'junit', version: '4.11'
+    // https://mvnrepository.com/artifact/com.google.guava/guava
+    compile group: 'com.google.guava', name: 'guava', version: '21.0'
+}
