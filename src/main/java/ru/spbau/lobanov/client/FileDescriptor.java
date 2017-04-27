@@ -1,7 +1,7 @@
 package ru.spbau.lobanov.client;
 
 /**
- * Created by Артём on 27.04.2017.
+ * Class contained information about file on server
  */
 public class FileDescriptor {
     private final String name;

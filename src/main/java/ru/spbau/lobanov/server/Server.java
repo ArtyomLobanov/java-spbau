@@ -19,7 +19,7 @@ public class Server {
     private final PrintStream logStream;
 
 
-    Server(PrintStream logStream) {
+    public Server(PrintStream logStream) {
         this.logStream = logStream;
     }
 

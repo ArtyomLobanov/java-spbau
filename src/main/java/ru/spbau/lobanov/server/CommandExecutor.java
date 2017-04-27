@@ -51,7 +51,6 @@ public class CommandExecutor {
      */
     private void listCommand(String path, DataOutputStream outputStream) throws IOException {
         File folder = new File(path);
-        System.out.println(folder.getAbsolutePath());
         if (!folder.exists() || !folder.isDirectory()) {
             outputStream.writeInt(0);
             return;
@@ -81,18 +80,18 @@ public class CommandExecutor {
             outputStream.writeInt(0);
             return;
         }
-        System.out.println(file.length());
         outputStream.writeLong(file.length());
         FileInputStream fileStream = new FileInputStream(file);
         byte[] buffer = new byte[1024];
-        int count;
         try {
-            do {
-                count = fileStream.read(buffer);
+            int count  = fileStream.read(buffer);
+            while (count != -1) {
                 outputStream.write(buffer, 0, count);
-            } while (count != 0);
-        } catch (Exception e) {
-            System.out.println("e:" + e.getMessage());
+                count = fileStream.read(buffer);
+            }
+        } catch (IOException e) {
+            errorStream.println("Error during get-command:" + e.getMessage());
+            throw e;
         }
     }
 
