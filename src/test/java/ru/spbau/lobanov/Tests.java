@@ -10,31 +10,45 @@ import ru.spbau.lobanov.server.Server;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.io.PrintWriter;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import static org.junit.Assert.*;
 
 public class Tests {
+
+    private static void createFile(String path) throws IOException {
+        File file = new File(path);
+        Files.createParentDirs(file);
+        Files.touch(file);
+        PrintWriter out = new PrintWriter(new File(path));
+        out.println("lgevbhkwubrldf" + Math.random());
+        out.close();
+    }
+
     @Test
-    public void commandListFiles() throws Server.ServerException, Client.ClientException {
+    public void commandListFiles() throws Server.ServerException, Client.ClientException, IOException {
         Server server = new Server(Mockito.mock(PrintStream.class));
         server.start(4000);
         Client client = new Client(Mockito.mock(PrintStream.class));
         client.setServer("localhost", 4000);
-        FileDescriptor[] descriptors = client.listFiles("src\\main\\java\\ru\\spbau\\lobanov");
+        createFile(Paths.get("test","a.txt").toString());
+        createFile(Paths.get("test", "test2", "b.txt").toString());
+        FileDescriptor[] descriptors = client.listFiles("test");
+        assertEquals(2, descriptors.length);
         List<String> names = Arrays.stream(descriptors)
                 .map(FileDescriptor::getName)
                 .collect(Collectors.toList());
-        assertTrue(names.contains("server"));
-        assertTrue(names.contains("client"));
-        assertTrue(names.contains("Starter.java"));
-        assertTrue(names.contains("Connection.java"));
+        assertTrue(names.contains("a.txt"));
+        assertTrue(names.contains("test2"));
         long folders = Arrays.stream(descriptors)
                 .filter(FileDescriptor::isFolder)
                 .count();
-        assertEquals(2, folders);
+        assertEquals(1, folders);
     }
 
     @Test
@@ -43,8 +57,10 @@ public class Tests {
         server.start(4000);
         Client client = new Client(Mockito.mock(PrintStream.class));
         client.setServer("localhost", 4000);
-        File file = client.getFile(".travis.yml", "tmp.txt");
-        File realFile = new File(".travis.yml");
+        createFile(Paths.get("test","a.txt").toString());
+        File file = client.getFile(Paths.get("test","a.txt").toString(),
+                Paths.get("test", "test2", "b.txt").toString());
+        File realFile = Paths.get("test","a.txt").toFile();
         assertEquals(realFile.length(), file.length());
         assertTrue(Files.equal(realFile, file));
     }
