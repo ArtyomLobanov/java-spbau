@@ -44,8 +44,8 @@ public class Tests {
         server.start(4000);
         Client client = new Client(Mockito.mock(PrintStream.class));
         client.setServer("localhost", 4000);
-        File file = client.getFile(".gitignore", "tmp.txt");
-        File realFile = new File(".gitignore");
+        File file = client.getFile(".travis.yml", "tmp.txt");
+        File realFile = new File(".travis.yml");
         assertEquals(realFile.length(), file.length());
         assertTrue(Files.equal(realFile, file));
     }
