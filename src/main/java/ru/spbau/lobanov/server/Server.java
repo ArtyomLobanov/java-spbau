@@ -1,5 +1,7 @@
 package ru.spbau.lobanov.server;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.io.IOException;
 import java.io.PrintStream;
 import java.net.ServerSocket;
@@ -19,7 +21,7 @@ public class Server {
     private final PrintStream logStream;
 
 
-    public Server(PrintStream logStream) {
+    public Server(@NotNull PrintStream logStream) {
         this.logStream = logStream;
     }
 
@@ -105,7 +107,7 @@ public class Server {
     }
 
     public class ServerException extends Exception {
-        ServerException(String message) {
+        ServerException(@NotNull String message) {
             super(message);
         }
     }

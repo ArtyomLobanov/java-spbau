@@ -1,5 +1,6 @@
 package ru.spbau.lobanov.server;
 
+import org.jetbrains.annotations.NotNull;
 import ru.spbau.lobanov.Connection;
 
 import java.io.*;
@@ -15,7 +16,7 @@ public class CommandExecutor {
 
     private final PrintStream errorStream;
 
-    CommandExecutor(PrintStream errorStream) {
+    CommandExecutor(@NotNull PrintStream errorStream) {
         this.errorStream = errorStream;
     }
 
@@ -25,7 +26,7 @@ public class CommandExecutor {
      *
      * @param socket socket connected with client
      */
-    void execute(Socket socket) {
+    void execute(@NotNull Socket socket) {
         try (Connection connection = new Connection(socket)) {
             int commandCode = connection.in.readInt();
             if (commandCode == LIST_COMMAND) {
@@ -49,7 +50,7 @@ public class CommandExecutor {
      * @param outputStream stream to write down results
      * @throws IOException if some I/O problems occurred
      */
-    private void listCommand(String path, DataOutputStream outputStream) throws IOException {
+    private void listCommand(@NotNull String path, @NotNull DataOutputStream outputStream) throws IOException {
         File folder = new File(path);
         if (!folder.exists() || !folder.isDirectory()) {
             outputStream.writeInt(0);
@@ -74,7 +75,7 @@ public class CommandExecutor {
      * @param outputStream stream to write down results
      * @throws IOException if some I/O problems occurred
      */
-    private void getCommand(String path, DataOutputStream outputStream) throws IOException {
+    private void getCommand(@NotNull String path, @NotNull DataOutputStream outputStream) throws IOException {
         File file = new File(path);
         if (!file.exists() || !file.isFile()) {
             outputStream.writeInt(0);
@@ -96,7 +97,7 @@ public class CommandExecutor {
     }
 
     public class WrongRequestFormatException extends Exception {
-        WrongRequestFormatException(String message) {
+        WrongRequestFormatException(@NotNull String message) {
             super(message);
         }
     }

@@ -1,5 +1,7 @@
 package ru.spbau.lobanov;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -15,7 +17,7 @@ public class Connection implements AutoCloseable {
     public final DataInputStream in;
     public final DataOutputStream out;
 
-    public Connection(Socket socket) throws IOException {
+    public Connection(@NotNull Socket socket) throws IOException {
         this.socket = socket;
         try {
             in = new DataInputStream(socket.getInputStream());

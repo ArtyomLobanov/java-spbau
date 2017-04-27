@@ -1,6 +1,7 @@
 package ru.spbau.lobanov.client;
 
 import com.google.common.io.Files;
+import org.jetbrains.annotations.NotNull;
 import ru.spbau.lobanov.Connection;
 import ru.spbau.lobanov.server.CommandExecutor;
 
@@ -25,7 +26,7 @@ public class Client {
      * @param host server's host
      * @param port server's port
      */
-    public synchronized void setServer(String host, int port)  {
+    public synchronized void setServer(@NotNull String host, int port)  {
         this.host = host;
         this.port = port;
         logStream.println("Server address updated");
@@ -48,7 +49,8 @@ public class Client {
      * @throws ClientException if some problems with connection appeared
      * @return array of FileDescriptors contained information about files in interesting folder
      */
-    public synchronized FileDescriptor[] listFiles(String path) throws ClientException {
+    @NotNull
+    public synchronized FileDescriptor[] listFiles(@NotNull String path) throws ClientException {
         if (host == null && port == -1) {
             throw new ClientException("Target server wasn't set");
         }
@@ -79,7 +81,8 @@ public class Client {
      * @throws ClientException if some problems with connection appeared
      * @return File associated with your copy
      */
-    public synchronized File getFile(String path, String target) throws ClientException {
+    @NotNull
+    public synchronized File getFile(@NotNull String path, @NotNull String target) throws ClientException {
         if (host == null && port == -1) {
             throw new ClientException("Target server wasn't set");
         }
@@ -114,11 +117,11 @@ public class Client {
     }
 
     public class ClientException extends Exception {
-        public ClientException(String message) {
+        public ClientException(@NotNull String message) {
             super(message);
         }
 
-        public ClientException(String message, Throwable cause) {
+        public ClientException(@NotNull String message, @NotNull Throwable cause) {
             super(message, cause);
         }
     }
