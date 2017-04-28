@@ -25,6 +25,7 @@ public class ConsoleWorkerTest {
         when(dataManager.hasBranch("branch")).thenReturn(false);
         when(dataManager.getHeader()).thenReturn(header);
         when(dataManager.getStage()).thenReturn(stage);
+        when(dataManager.isInitialized()).thenReturn(true);
 
         ConsoleWorker consoleWorker = new ConsoleWorker(new LiteVCS(dataManager));
         consoleWorker.execute("switch_branch", new String[]{"branch"});
@@ -43,6 +44,7 @@ public class ConsoleWorkerTest {
         when(dataManager.hasBranch("branch")).thenReturn(false);
         when(dataManager.getHeader()).thenReturn(header);
         when(dataManager.getStage()).thenReturn(stage);
+        when(dataManager.isInitialized()).thenReturn(true);
 
         ConsoleWorker consoleWorker = new ConsoleWorker(new LiteVCS(dataManager));
         consoleWorker.execute("switch_branch", new String[]{"branch"});
@@ -61,6 +63,7 @@ public class ConsoleWorkerTest {
         when(dataManager.hasBranch("branch")).thenReturn(false);
         when(dataManager.getHeader()).thenReturn(header);
         when(dataManager.getStage()).thenReturn(stage);
+        when(dataManager.isInitialized()).thenReturn(true);
 
         ConsoleWorker consoleWorker = new ConsoleWorker(new LiteVCS(dataManager));
         consoleWorker.execute("switch_branch", new String[]{"branch"});
@@ -79,6 +82,7 @@ public class ConsoleWorkerTest {
         when(dataManager.hasBranch("master")).thenReturn(false);
         when(dataManager.getHeader()).thenReturn(header);
         when(dataManager.getStage()).thenReturn(stage);
+        when(dataManager.isInitialized()).thenReturn(true);
 
         ConsoleWorker consoleWorker = new ConsoleWorker(new LiteVCS(dataManager));
         consoleWorker.execute("remove_branch", new String[]{"master"});
@@ -94,6 +98,7 @@ public class ConsoleWorkerTest {
         DataManager dataManager = mock(DataManager.class);
         when(dataManager.hasBranch("master")).thenReturn(false);
         when(dataManager.getHeader()).thenReturn(header);
+        when(dataManager.isInitialized()).thenReturn(true);
 
         ConsoleWorker consoleWorker = new ConsoleWorker(new LiteVCS(dataManager));
         consoleWorker.execute("merge_branch", new String[]{"master", "commit"});
@@ -109,6 +114,7 @@ public class ConsoleWorkerTest {
         DataManager dataManager = mock(DataManager.class);
         when(dataManager.hasBranch("branch")).thenReturn(true);
         when(dataManager.getHeader()).thenReturn(header);
+        when(dataManager.isInitialized()).thenReturn(true);
 
         ConsoleWorker consoleWorker = new ConsoleWorker(new LiteVCS(dataManager));
         consoleWorker.execute("create_branch", new String[]{"branch"});

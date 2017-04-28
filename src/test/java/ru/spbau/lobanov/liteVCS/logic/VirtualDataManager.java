@@ -38,6 +38,10 @@ public class VirtualDataManager extends DataManager {
         return "" + file.hashCode();
     }
 
+    boolean isInitialized() {
+        return isInitialized;
+    }
+
     void initRepository() throws RecreatingRepositoryException {
         if (isInitialized) {
             throw new RecreatingRepositoryException("");

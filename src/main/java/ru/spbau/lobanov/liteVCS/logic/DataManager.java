@@ -27,9 +27,10 @@ public class DataManager {
     private static final String PATH_TO_COMMITS_FILES = concat(ROOT_DIRECTORY_NAME, "commits");
     private static final String PATH_TO_SAVED_FILES = concat(ROOT_DIRECTORY_NAME, "files");
     private static final String PATH_TO_BRANCHES = concat(ROOT_DIRECTORY_NAME, "branches");
-    private static final String ROOT_VERSION_NODE_ID = "root";
+    private static final String PATH_TO_LOGS = concat(ROOT_DIRECTORY_NAME, "logs");
     private static final String PATH_TO_STAGE = concat(ROOT_DIRECTORY_NAME, "stage.lVCS");
     private static final String PATH_TO_HEADER = concat(ROOT_DIRECTORY_NAME, "header.lVCS");
+    private static final String ROOT_VERSION_NODE_ID = "root";
 
     @NotNull
     private final String workingDirectory;
@@ -48,11 +49,12 @@ public class DataManager {
         if (rootDirectory.exists()) {
             throw new RecreatingRepositoryException("Repository was already created here:" + workingDirectory);
         }
-        boolean success = Paths.get(workingDirectory, DataManager.PATH_TO_COMMITS_FILES).toFile().mkdirs() &&
-                Paths.get(workingDirectory, DataManager.PATH_TO_CONTENT_DESCRIPTORS_FILES).toFile().mkdirs() &&
-                Paths.get(workingDirectory, DataManager.PATH_TO_SAVED_FILES).toFile().mkdirs() &&
-                Paths.get(workingDirectory, DataManager.PATH_TO_VERSIONS_FILES).toFile().mkdirs() &&
-                Paths.get(workingDirectory, DataManager.PATH_TO_BRANCHES).toFile().mkdirs();
+        boolean success = Paths.get(workingDirectory, PATH_TO_COMMITS_FILES).toFile().mkdirs() &&
+                Paths.get(workingDirectory, PATH_TO_CONTENT_DESCRIPTORS_FILES).toFile().mkdirs() &&
+                Paths.get(workingDirectory, PATH_TO_SAVED_FILES).toFile().mkdirs() &&
+                Paths.get(workingDirectory, PATH_TO_VERSIONS_FILES).toFile().mkdirs() &&
+                Paths.get(workingDirectory, PATH_TO_BRANCHES).toFile().mkdirs() &&
+                Paths.get(workingDirectory, PATH_TO_LOGS).toFile().mkdirs();
         if (!success) {
             throw new IOException("Unexpected error during directories creating");
         }
@@ -68,8 +70,26 @@ public class DataManager {
             putHeader(header);
             putStage(Stage.EMPTY);
         } catch (RepositoryNotInitializedException e) {
-            throw new Error("Unexpected error during repository initialization");
+            throw new Error("Unexpected fatal error during repository initialization");
         }
+    }
+
+    /**
+     * Primitive check of state of repository
+     * Checks only existence of folders, header and stage files
+     *
+     * @return true if repository was already initialized
+     */
+    boolean isInitialized() {
+        return Paths.get(workingDirectory, ROOT_DIRECTORY_NAME).toFile().exists() &&
+                Paths.get(workingDirectory, PATH_TO_COMMITS_FILES).toFile().exists() &&
+                Paths.get(workingDirectory, PATH_TO_CONTENT_DESCRIPTORS_FILES).toFile().exists() &&
+                Paths.get(workingDirectory, PATH_TO_SAVED_FILES).toFile().exists() &&
+                Paths.get(workingDirectory, PATH_TO_VERSIONS_FILES).toFile().exists() &&
+                Paths.get(workingDirectory, PATH_TO_BRANCHES).toFile().exists() &&
+                Paths.get(workingDirectory, PATH_TO_BRANCHES).toFile().exists() &&
+                Paths.get(workingDirectory, PATH_TO_HEADER).toFile().exists() &&
+                Paths.get(workingDirectory, PATH_TO_STAGE).toFile().exists();
     }
 
     /**
@@ -227,7 +247,7 @@ public class DataManager {
     List<String> workingCopyFiles() throws IOException {
         List<String> paths = new ArrayList<>();
         File[] files = Paths.get(workingDirectory).toFile().listFiles();
-        if (files == null){
+        if (files == null) {
             throw new IOException("Cant get children of folder");
         }
         Path mainDirectory = Paths.get(workingDirectory, ROOT_DIRECTORY_NAME);

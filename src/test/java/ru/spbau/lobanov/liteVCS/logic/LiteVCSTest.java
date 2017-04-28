@@ -153,27 +153,6 @@ public class LiteVCSTest {
         assertEquals(0, dataManager.workingCopy.size());
     }
 
-//    @Test
-//    public void reset() throws Exception {
-//        VirtualDataManager dataManager = new VirtualDataManager();
-//        LiteVCS liteVCS = new LiteVCS(dataManager);
-//
-//        liteVCS.init();
-//
-//        dataManager.writeFile("a.txt", "data");
-//        liteVCS.add("a.txt");
-//        liteVCS.commit("message");
-//
-//        dataManager.writeFile("a.txt", "data2");
-//        liteVCS.add("a.txt");
-//        dataManager.writeFile("b.txt", "data");
-//
-//        liteVCS.reset();
-//
-//        assertEquals(1, dataManager.workingCopy.size());
-//        assertEquals("data".hashCode() + "", dataManager.hash("a.txt"));
-//    }
-
     @Test
     public void checkout() throws Exception {
         VirtualDataManager dataManager = new VirtualDataManager();

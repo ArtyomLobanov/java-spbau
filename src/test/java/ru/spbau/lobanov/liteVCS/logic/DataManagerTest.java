@@ -27,7 +27,7 @@ public class DataManagerTest {
         File dir = Paths.get(workspace, ".liteVCS").toFile();
         File[] files = dir.listFiles();
         assertNotNull(files);
-        assertEquals(7, files.length);
+        assertEquals(8, files.length);
     }
 
     @After
