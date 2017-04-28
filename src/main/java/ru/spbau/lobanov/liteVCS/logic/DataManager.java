@@ -332,6 +332,7 @@ public class DataManager {
     void removeBranch(@NotNull String name) throws LostFileException {
         File file = Paths.get(workingDirectory, PATH_TO_BRANCHES, name).toFile();
         if (!file.delete()) {
+            logger.warning("Try to remove branch, but it wasn't found");
             throw new LostFileException("File wasn't found", null, file);
         }
     }
@@ -413,6 +414,7 @@ public class DataManager {
                 if (!file.delete()) {
                     throw new Error("Cant remove file: " + file.getAbsolutePath());
                 }
+                logger.fine("File " + file.getName() + " was removed");
             }
         }
     }
@@ -449,6 +451,7 @@ public class DataManager {
                 if (!file.delete()) {
                     throw new Error("Cant remove file");
                 }
+                logger.fine("File " + file.getName() + " was removed");
             }
         }
     }
@@ -494,7 +497,8 @@ public class DataManager {
         if (!expectedType.isInstance(o)) {
             throw new BrokenFileException("Unexpected data was found in file: " + path.toString(), path.toFile());
         }
-        logger.fine("Instance of " + expectedType.getName() + " was successfully loaded");
+        logger.fine("Instance of " + expectedType.getName() +
+                " was successfully loaded (id=" + path.getName(-1) + ")");
         return expectedType.cast(o);
     }
 
@@ -515,7 +519,8 @@ public class DataManager {
         } catch (IOException e) {
             throw new Error("Unknown error occurred while writing the file: " + path.toString(), e);
         }
-        logger.fine("Instance of " + object.getClass().getName() + " was successfully saved");
+        logger.fine("Instance of " + object.getClass().getName() + " was successfully saved (id="
+                + path.getName(-1) + ")");
     }
 
     /**

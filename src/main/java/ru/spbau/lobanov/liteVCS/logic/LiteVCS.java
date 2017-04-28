@@ -20,7 +20,7 @@ import static ru.spbau.lobanov.liteVCS.logic.LiteVCS.StageStatus.*;
  */
 public class LiteVCS {
 
-    private static final Logger logger = Logger.getLogger("LiteVCS");
+    private static final Logger logger = Logger.getLogger(LiteVCS.class.getName());
 
     private final DataManager dataManager;
 
@@ -438,8 +438,10 @@ public class LiteVCS {
         checkStatus();
         ContentDescriptor descriptor = getActualDescriptor();
         if (!descriptor.getFiles().containsKey(filename)) {
+            logger.warning("Try to reset " + filename + ", but it wasn't observed");
             throw new UnobservedFileException("File " + filename + " have no saved versions");
         }
+        logger.fine("Load saved version of file " + filename);
         dataManager.loadFile(descriptor.getFiles().get(filename), filename);
         Stage stage = dataManager.getStage();
         if (stage.getChangedFiles().containsKey(filename) || stage.getRemovedFiles().contains(filename)) {
