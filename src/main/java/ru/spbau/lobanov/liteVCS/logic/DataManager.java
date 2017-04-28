@@ -497,8 +497,8 @@ public class DataManager {
         if (!expectedType.isInstance(o)) {
             throw new BrokenFileException("Unexpected data was found in file: " + path.toString(), path.toFile());
         }
-        logger.fine("Instance of " + expectedType.getName() +
-                " was successfully loaded (id=" + path.getName(-1) + ")");
+        logger.fine("Instance of " + expectedType.getName() + " was successfully loaded (id="
+                + path.getName(path.getNameCount() - 1) + ")");
         return expectedType.cast(o);
     }
 
@@ -520,7 +520,7 @@ public class DataManager {
             throw new Error("Unknown error occurred while writing the file: " + path.toString(), e);
         }
         logger.fine("Instance of " + object.getClass().getName() + " was successfully saved (id="
-                + path.getName(-1) + ")");
+                + path.getName(path.getNameCount() - 1) + ")");
     }
 
     /**
