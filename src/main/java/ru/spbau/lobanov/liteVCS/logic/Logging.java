@@ -13,7 +13,6 @@ public class Logging {
         } catch (IOException e) {
             throw new LoggingException("Can't init logging", e);
         }
-        Logger.getLogger(Logger.class.getName()).fine("Logging was set up");
     }
 
     public static class LoggingException extends Exception {

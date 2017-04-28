@@ -202,6 +202,7 @@ public class DataManager {
             NonexistentFileAdditionException {
         File file = Paths.get(workingDirectory, relativePath).toFile();
         if (!file.exists() || !file.isFile()) {
+            logger.warning("Failed to save file " + relativePath + ", because it doesn't exist");
             throw new NonexistentFileAdditionException("File " + relativePath + " doesn't exist");
         }
         String hash = hashFile(relativePath);
@@ -211,8 +212,10 @@ public class DataManager {
                 Files.copy(file, savedCopy);
             }
         } catch (IOException e) {
+            logger.warning("Failed to save file " + relativePath + ". Error:" + e.getMessage());
             throw new RepositoryNotInitializedException("Directory wasn't found:" + PATH_TO_SAVED_FILES, e);
         }
+        logger.fine("File " + relativePath + " was saved in repository (id=" + hash + ")");
         return hash;
     }
 
@@ -236,6 +239,7 @@ public class DataManager {
             }
             path = path.getParent();
         }
+        logger.fine("File " + relativePath + " was removed");
     }
 
     /**
@@ -395,6 +399,7 @@ public class DataManager {
         Files.createParentDirs(targetFile);
         Files.touch(targetFile);
         Files.copy(savedCopy, targetFile);
+        logger.fine("File (id=" + fileID + ") was copied to " + targetPath);
     }
 
     /**
