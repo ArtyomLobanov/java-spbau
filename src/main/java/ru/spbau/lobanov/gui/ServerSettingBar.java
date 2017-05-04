@@ -6,6 +6,9 @@ import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * GUI class which show user setting of server like port number etc
+ */
 public class ServerSettingBar extends JPanel {
     private static final String hostRegexp = ".*";
 
@@ -29,10 +32,21 @@ public class ServerSettingBar extends JPanel {
         updateButton.setEnabled(false);
     }
 
+    /**
+     * Add listener
+     *
+     * @param serverSettingsListener which will be called if settings new applied
+     */
     public void addServerSettingsListener(ServerSettingsListener serverSettingsListener) {
         listeners.add(serverSettingsListener);
     }
 
+    /**
+     * Parse text to get port number
+     *
+     * @param text text to be parsed
+     * @return port number if it's valid or -1 otherwise
+     */
     private int parsePort(String text) {
         try {
             int port = Integer.parseInt(text);
@@ -42,6 +56,9 @@ public class ServerSettingBar extends JPanel {
         }
     }
 
+    /**
+     * Check is updateButton should be enabled
+     */
     private void checkSettingStatus() {
         boolean isReady = !hostInput.getText().isEmpty();
         isReady &= parsePort(portInput.getText()) != -1;
@@ -76,6 +93,9 @@ public class ServerSettingBar extends JPanel {
         checkSettingStatus();
     };
 
+    /**
+     * Listener which will be called if settings new applied
+     */
     public interface ServerSettingsListener {
         void settingsUpdated(String newHost, int port);
     }

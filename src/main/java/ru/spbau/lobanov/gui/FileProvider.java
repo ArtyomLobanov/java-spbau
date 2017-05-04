@@ -12,6 +12,10 @@ import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.List;
 
+
+/**
+ * GUI class, which show table of files
+ */
 public class FileProvider extends JPanel {
     private static final String[] COLUMNS = {"File", "Type"};
     private final Model model;
@@ -38,20 +42,28 @@ public class FileProvider extends JPanel {
         add(table.getTableHeader(), BorderLayout.NORTH);
     }
 
+    /**
+     * Changes set of files
+     *
+     * @param files new set of files
+     */
     public void update(FileDescriptor[] files) {
         currentFiles = files;
         model.notifyDataSetChanged();
     }
 
+    /**
+     * Add new listener
+     *
+     * @param listener listener, which will be called if any files will be clicked
+     */
     public void addFileClickListener(FileClickListener listener) {
         listeners.add(listener);
     }
 
-    @Override
-    public Dimension getPreferredSize() {
-        return table.getPreferredSize();
-    }
-
+    /**
+     * Class which wrap array of FileDescriptors
+     */
     private class Model implements TableModel {
         private final List<TableModelListener> listeners = new ArrayList<>();
 
@@ -112,6 +124,9 @@ public class FileProvider extends JPanel {
         }
     }
 
+    /**
+     * Listener, which will be called if some file will be clicked
+     */
     interface FileClickListener {
         void fileClicked(FileDescriptor fileDescriptor, FileProvider provider);
     }

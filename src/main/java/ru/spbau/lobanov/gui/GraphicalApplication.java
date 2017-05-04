@@ -36,12 +36,15 @@ public class GraphicalApplication extends JFrame {
         setMinimumSize(new Dimension(600, 300));
     }
 
+    /**
+     * Reload files and update FileProvider
+     */
     private void refresh() {
         new Thread(() -> {
             FileDescriptor[] requestedFiles = null;
             try {
                 String path = serverPath.toString();
-                requestedFiles = client.listFiles(path.isEmpty()? "." : path);
+                requestedFiles = client.listFiles(path.isEmpty() ? "." : path);
             } catch (Client.ClientException e) {
                 showErrorMessage(e.getMessage());
             }
@@ -50,6 +53,13 @@ public class GraphicalApplication extends JFrame {
         }).start();
     }
 
+    /**
+     * Process array of FileDescriptors returned by Client.
+     * Add BACK-folder, if it's necessary
+     *
+     * @param descriptors array returned by Client
+     * @return array of FileDescriptors which is ready to be given to FileProvider
+     */
     private FileDescriptor[] prepareResult(FileDescriptor[] descriptors) {
         if (descriptors == null) {
             return new FileDescriptor[0];
@@ -63,6 +73,11 @@ public class GraphicalApplication extends JFrame {
         return descriptors;
     }
 
+    /**
+     * Show user Dialog with given message
+     *
+     * @param message message to be shown
+     */
     private void showErrorMessage(String message) {
         SwingUtilities.invokeLater(() ->
                 JOptionPane.showMessageDialog(this, message, "Error", JOptionPane.ERROR_MESSAGE));
@@ -77,7 +92,7 @@ public class GraphicalApplication extends JFrame {
     @SuppressWarnings("FieldCanBeLocal")
     private final FileClickListener providerListener = (descriptor, provider) -> {
         if (descriptor == BACK) {
-            serverPath = serverPath.getParent() == null? EMPTY_PATH : serverPath.getParent();
+            serverPath = serverPath.getParent() == null ? EMPTY_PATH : serverPath.getParent();
             refresh();
         } else if (descriptor.isFolder()) {
             serverPath = Paths.get(serverPath.toString(), descriptor.getName());
