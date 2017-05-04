@@ -2,6 +2,7 @@ package ru.spbau.lobanov;
 
 import org.jetbrains.annotations.NotNull;
 import ru.spbau.lobanov.client.ClientConsoleApplication;
+import ru.spbau.lobanov.gui.GraphicalApplication;
 import ru.spbau.lobanov.server.ServerConsoleApplication;
 
 import java.util.Arrays;
@@ -20,6 +21,9 @@ public class Starter {
                 break;
             case "client":
                 ClientConsoleApplication.main(new String[0]);
+                break;
+            case "gui":
+                GraphicalApplication.main(new String[0]);
                 break;
             default:
                 System.out.println("Unknown module");

@@ -26,7 +26,7 @@ public class Client {
      * @param host server's host
      * @param port server's port
      */
-    public synchronized void setServer(@NotNull String host, int port)  {
+    public synchronized void setServer(@NotNull String host, int port) {
         this.host = host;
         this.port = port;
         logStream.println("Server address updated");
@@ -35,7 +35,7 @@ public class Client {
     /**
      * Remove information about current server
      */
-    public synchronized void clearServer() {
+    synchronized void clearServer() {
         host = null;
         port = -1;
         logStream.println("Server address cleared");
@@ -46,8 +46,8 @@ public class Client {
      * in directory defined by path-argument
      *
      * @param path path to interesting folder
-     * @throws ClientException if some problems with connection appeared
      * @return array of FileDescriptors contained information about files in interesting folder
+     * @throws ClientException if some problems with connection appeared
      */
     @NotNull
     public synchronized FileDescriptor[] listFiles(@NotNull String path) throws ClientException {
@@ -76,10 +76,10 @@ public class Client {
      * Open connection to current server,
      * copy file from server to you computer
      *
-     * @param path path to interesting file
+     * @param path   path to interesting file
      * @param target expected path to copy
-     * @throws ClientException if some problems with connection appeared
      * @return File associated with your copy
+     * @throws ClientException if some problems with connection appeared
      */
     @NotNull
     public synchronized File getFile(@NotNull String path, @NotNull String target) throws ClientException {
@@ -117,11 +117,11 @@ public class Client {
     }
 
     public class ClientException extends Exception {
-        public ClientException(@NotNull String message) {
+        ClientException(@NotNull String message) {
             super(message);
         }
 
-        public ClientException(@NotNull String message, @NotNull Throwable cause) {
+        ClientException(@NotNull String message, @NotNull Throwable cause) {
             super(message, cause);
         }
     }
