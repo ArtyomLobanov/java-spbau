@@ -1,8 +1,8 @@
 package ru.spbau.lobanov.gui;
 
 
-import com.sun.istack.internal.Nullable;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import ru.spbau.lobanov.client.Client;
 import ru.spbau.lobanov.client.FileDescriptor;
 import ru.spbau.lobanov.gui.FileProvider.FileClickListener;
