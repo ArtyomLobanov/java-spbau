@@ -64,7 +64,8 @@ public class FileProvider extends JPanel {
     }
 
     /**
-     * Class which wrap array of FileDescriptors
+     * Class which describe format of table and helps
+     * JTable working with array of FileDescriptors
      */
     private class Model implements TableModel {
         private final List<TableModelListener> listeners = new ArrayList<>();
