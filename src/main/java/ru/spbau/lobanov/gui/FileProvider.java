@@ -1,5 +1,7 @@
 package ru.spbau.lobanov.gui;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import ru.spbau.lobanov.client.FileDescriptor;
 
 import javax.swing.*;
@@ -23,7 +25,7 @@ public class FileProvider extends JPanel {
     private final List<FileClickListener> listeners;
     private FileDescriptor[] currentFiles;
 
-    public FileProvider(FileDescriptor[] files) {
+    public FileProvider(@NotNull FileDescriptor[] files) {
         listeners = new ArrayList<>();
         setLayout(new BorderLayout());
         currentFiles = files;
@@ -47,7 +49,7 @@ public class FileProvider extends JPanel {
      *
      * @param files new set of files
      */
-    public void update(FileDescriptor[] files) {
+    public void update(@NotNull FileDescriptor[] files) {
         currentFiles = files;
         model.notifyDataSetChanged();
     }
@@ -57,7 +59,7 @@ public class FileProvider extends JPanel {
      *
      * @param listener listener, which will be called if any files will be clicked
      */
-    public void addFileClickListener(FileClickListener listener) {
+    public void addFileClickListener(@NotNull FileClickListener listener) {
         listeners.add(listener);
     }
 
@@ -86,6 +88,7 @@ public class FileProvider extends JPanel {
             return COLUMNS[columnIndex];
         }
 
+        @NotNull
         @Override
         public Class<?> getColumnClass(int columnIndex) {
             return String.class;
@@ -96,6 +99,7 @@ public class FileProvider extends JPanel {
             return false;
         }
 
+        @NotNull
         @Override
         public Object getValueAt(int rowIndex, int columnIndex) {
             switch (columnIndex) {
@@ -109,17 +113,17 @@ public class FileProvider extends JPanel {
         }
 
         @Override
-        public void setValueAt(Object aValue, int rowIndex, int columnIndex) {
+        public void setValueAt(@Nullable Object aValue, int rowIndex, int columnIndex) {
             throw new UnsupportedOperationException("Cant change data this way");
         }
 
         @Override
-        public void addTableModelListener(TableModelListener l) {
+        public void addTableModelListener(@NotNull TableModelListener l) {
             listeners.add(l);
         }
 
         @Override
-        public void removeTableModelListener(TableModelListener l) {
+        public void removeTableModelListener(@NotNull TableModelListener l) {
             listeners.remove(l);
         }
     }
@@ -128,6 +132,6 @@ public class FileProvider extends JPanel {
      * Listener, which will be called if some file will be clicked
      */
     interface FileClickListener {
-        void fileClicked(FileDescriptor fileDescriptor, FileProvider provider);
+        void fileClicked(@NotNull FileDescriptor fileDescriptor, @NotNull FileProvider provider);
     }
 }

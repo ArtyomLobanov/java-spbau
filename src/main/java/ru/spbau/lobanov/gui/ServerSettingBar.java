@@ -1,5 +1,7 @@
 package ru.spbau.lobanov.gui;
 
+import org.jetbrains.annotations.NotNull;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionListener;
@@ -37,7 +39,7 @@ public class ServerSettingBar extends JPanel {
      *
      * @param serverSettingsListener which will be called if settings new applied
      */
-    public void addServerSettingsListener(ServerSettingsListener serverSettingsListener) {
+    public void addServerSettingsListener(@NotNull ServerSettingsListener serverSettingsListener) {
         listeners.add(serverSettingsListener);
     }
 
@@ -47,7 +49,7 @@ public class ServerSettingBar extends JPanel {
      * @param text text to be parsed
      * @return port number if it's valid or -1 otherwise
      */
-    private int parsePort(String text) {
+    private int parsePort(@NotNull String text) {
         try {
             int port = Integer.parseInt(text);
             return (0 <= port && port <= 65535) ? port : -1;
@@ -97,6 +99,6 @@ public class ServerSettingBar extends JPanel {
      * Listener which will be called if settings new applied
      */
     public interface ServerSettingsListener {
-        void settingsUpdated(String newHost, int port);
+        void settingsUpdated(@NotNull String newHost, int port);
     }
 }

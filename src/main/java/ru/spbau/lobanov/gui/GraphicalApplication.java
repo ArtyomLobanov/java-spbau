@@ -1,6 +1,8 @@
 package ru.spbau.lobanov.gui;
 
 
+import com.sun.istack.internal.Nullable;
+import org.jetbrains.annotations.NotNull;
 import ru.spbau.lobanov.client.Client;
 import ru.spbau.lobanov.client.FileDescriptor;
 import ru.spbau.lobanov.gui.FileProvider.FileClickListener;
@@ -60,7 +62,8 @@ public class GraphicalApplication extends JFrame {
      * @param descriptors array returned by Client
      * @return array of FileDescriptors which is ready to be given to FileProvider
      */
-    private FileDescriptor[] prepareResult(FileDescriptor[] descriptors) {
+    @NotNull
+    private FileDescriptor[] prepareResult(@Nullable FileDescriptor[] descriptors) {
         if (descriptors == null) {
             return new FileDescriptor[0];
         }
@@ -78,7 +81,7 @@ public class GraphicalApplication extends JFrame {
      *
      * @param message message to be shown
      */
-    private void showErrorMessage(String message) {
+    private void showErrorMessage(@NotNull String message) {
         SwingUtilities.invokeLater(() ->
                 JOptionPane.showMessageDialog(this, message, "Error", JOptionPane.ERROR_MESSAGE));
     }
