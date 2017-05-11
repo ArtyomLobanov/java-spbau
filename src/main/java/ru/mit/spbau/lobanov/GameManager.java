@@ -42,14 +42,13 @@ public class GameManager {
 
     private int[] generateField(int n, int m) {
         Random random = new Random();
-        int pairNumbers = n * m / 2;
         int[] array = new int[n * m];
         for (int i = 0; i < n * m; i++) {
-            array[i] = i % pairNumbers;
+            array[i] = i % 2;
         }
-        for (int i = 0; i < n; i++) {
-            int first = random.nextInt(n);
-            int second = random.nextInt(n);
+        for (int i = 0; i < n * m; i++) {
+            int first = random.nextInt(n * m);
+            int second = random.nextInt(n * m);
             int tmp = array[first];
             array[first] = array[second];
             array[second] = tmp;
