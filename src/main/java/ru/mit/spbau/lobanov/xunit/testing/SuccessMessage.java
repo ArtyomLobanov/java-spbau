@@ -3,14 +3,15 @@ package ru.mit.spbau.lobanov.xunit.testing;
 import java.lang.reflect.Method;
 
 /**
- * Created by Артём on 18.05.2017.
+ * Class, which contains information about
+ * successful tests
  */
 public class SuccessMessage implements Message {
     private final String message;
     private final Method test;
     private final long time;
 
-    public SuccessMessage(String message, long time, Method test) {
+    SuccessMessage(String message, long time, Method test) {
         this.message = message;
         this.test = test;
         this.time = time;

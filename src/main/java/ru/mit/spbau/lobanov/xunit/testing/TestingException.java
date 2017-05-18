@@ -1,14 +1,14 @@
 package ru.mit.spbau.lobanov.xunit.testing;
 
 /**
- * Created by Артём on 18.05.2017.
+ * Special type of exception, thrown by Tester
  */
 public class TestingException extends Exception {
-    public TestingException(String message) {
+    TestingException(String message) {
         super(message);
     }
 
-    public TestingException(String message, Throwable cause) {
+    TestingException(String message, Throwable cause) {
         super(message, cause);
     }
 }

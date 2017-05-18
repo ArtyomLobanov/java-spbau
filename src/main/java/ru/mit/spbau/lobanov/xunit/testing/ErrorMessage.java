@@ -4,14 +4,15 @@ import java.lang.reflect.Method;
 import java.security.MessageDigest;
 
 /**
- * Created by Артём on 18.05.2017.
+ * Class, which contains information about
+ * failed tests and error occurred during tests running
  */
 public class ErrorMessage implements Message {
     private final String message;
     private final Throwable error;
     private final Method test;
 
-    public ErrorMessage(String message, Throwable error, Method test) {
+    ErrorMessage(String message, Throwable error, Method test) {
         this.message = message;
         this.error = error;
         this.test = test;

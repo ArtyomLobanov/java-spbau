@@ -11,6 +11,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * Class, which run test-methods from given Class
+ */
 public class Tester {
 
     private final Class<?> testPack;
@@ -26,18 +29,31 @@ public class Tester {
 
 
     public Tester(String testPackName) throws TestingException {
-        Class<?> testPack = Object.class;
+        Class<?> testPack;
         try {
             testPack = Class.forName(testPackName);
         } catch (ClassNotFoundException e) {
             throw new TestingException("Bad ClassLoader or wrong path: Class with tests wasn't found", e);
         }
+        this.testPack = testPack;
         beforeClassMethods = filterMethods(testPack.getDeclaredMethods(), BeforeClass.class);
         afterClassMethods = filterMethods(testPack.getDeclaredMethods(), AfterClass.class);
         beforeMethods = filterMethods(testPack.getDeclaredMethods(), Before.class);
         afterMethods = filterMethods(testPack.getDeclaredMethods(), After.class);
         testMethods = filterMethods(testPack.getDeclaredMethods(), Test.class);
+        successMessages = Collections.emptyList();
+        warningMessages = Collections.emptyList();
+        errorMessages = Collections.emptyList();
+        protocol = Collections.emptyList();
+    }
+
+    public Tester(Class<?> testPack) {
         this.testPack = testPack;
+        beforeClassMethods = filterMethods(testPack.getDeclaredMethods(), BeforeClass.class);
+        afterClassMethods = filterMethods(testPack.getDeclaredMethods(), AfterClass.class);
+        beforeMethods = filterMethods(testPack.getDeclaredMethods(), Before.class);
+        afterMethods = filterMethods(testPack.getDeclaredMethods(), After.class);
+        testMethods = filterMethods(testPack.getDeclaredMethods(), Test.class);
         successMessages = Collections.emptyList();
         warningMessages = Collections.emptyList();
         errorMessages = Collections.emptyList();
@@ -78,6 +94,12 @@ public class Tester {
         }
     }
 
+    /**
+     * Clear information about previous running,
+     * and run all test (and @BeforeClass, @After etc. methods too)
+     *
+     * @throws TestingException if it failed to create instance of Test-class
+     */
     public void runTests() throws TestingException {
         successMessages = new ArrayList<>();
         warningMessages = new ArrayList<>();
@@ -138,7 +160,7 @@ public class Tester {
         } catch (InvocationTargetException e) {
             Class<? extends Throwable> internalException = e.getCause().getClass();
             boolean expected = Arrays.stream(annotation.expected())
-                    .anyMatch(internalException::isAssignableFrom);
+                    .anyMatch(x -> x.isAssignableFrom(internalException));
             if (expected) {
                 reportSuccess("Test passed", System.currentTimeMillis() - start, method);
             } else {
@@ -166,6 +188,10 @@ public class Tester {
         return Collections.unmodifiableList(errorMessages);
     }
 
+    /**
+     * Return list of message, contains all type of messages, sorted by time
+     * @return list of all messages
+     */
     public List<Message> getProtocol() {
         return Collections.unmodifiableList(protocol);
     }
