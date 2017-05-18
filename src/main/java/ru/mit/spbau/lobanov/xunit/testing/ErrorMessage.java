@@ -1,5 +1,8 @@
 package ru.mit.spbau.lobanov.xunit.testing;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import java.lang.reflect.Method;
 import java.security.MessageDigest;
 
@@ -12,20 +15,23 @@ public class ErrorMessage implements Message {
     private final Throwable error;
     private final Method test;
 
-    ErrorMessage(String message, Throwable error, Method test) {
+    ErrorMessage(@NotNull String message, @Nullable Throwable error, @Nullable Method test) {
         this.message = message;
         this.error = error;
         this.test = test;
     }
 
+    @Nullable
     public Throwable getError() {
         return error;
     }
 
+    @Nullable
     public Method getTest() {
         return test;
     }
 
+    @NotNull
     public String getMessage() {
         return message;
     }

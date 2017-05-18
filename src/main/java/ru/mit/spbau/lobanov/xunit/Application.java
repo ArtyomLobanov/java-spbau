@@ -1,5 +1,6 @@
 package ru.mit.spbau.lobanov.xunit;
 
+import org.jetbrains.annotations.NotNull;
 import ru.mit.spbau.lobanov.xunit.testing.*;
 
 import java.net.MalformedURLException;
@@ -54,11 +55,14 @@ public class Application {
         for (SuccessMessage successMessage : tester.getSuccessMessages()) {
             System.out.print(successMessage.getTest().getName());
             System.out.print("\t:\t");
-            System.out.println(successMessage.getMessage());
+            System.out.print(successMessage.getMessage());
+            System.out.print("\t:\t");
+            System.out.println(successMessage.getTime() + " mills");
         }
     }
 
-    private static URL UriToURL(URI uri) {
+    @NotNull
+    private static URL UriToURL(@NotNull URI uri) {
         try {
             return uri.toURL();
         } catch (MalformedURLException e) {

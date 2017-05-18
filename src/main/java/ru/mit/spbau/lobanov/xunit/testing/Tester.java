@@ -1,5 +1,7 @@
 package ru.mit.spbau.lobanov.xunit.testing;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import ru.mit.spbau.lobanov.xunit.annotations.*;
 
 import java.lang.annotation.Annotation;
@@ -28,7 +30,7 @@ public class Tester {
     private List<Message> protocol;
 
 
-    public Tester(String testPackName) throws TestingException {
+    public Tester(@NotNull String testPackName) throws TestingException {
         Class<?> testPack;
         try {
             testPack = Class.forName(testPackName);
@@ -47,7 +49,7 @@ public class Tester {
         protocol = Collections.emptyList();
     }
 
-    public Tester(Class<?> testPack) {
+    public Tester(@NotNull Class<?> testPack) {
         this.testPack = testPack;
         beforeClassMethods = filterMethods(testPack.getDeclaredMethods(), BeforeClass.class);
         afterClassMethods = filterMethods(testPack.getDeclaredMethods(), AfterClass.class);
@@ -60,31 +62,32 @@ public class Tester {
         protocol = Collections.emptyList();
     }
 
-    private List<Method> filterMethods(Method[] methods, Class<? extends Annotation> target) {
+    @NotNull
+    private List<Method> filterMethods(@NotNull Method[] methods, @NotNull Class<? extends Annotation> target) {
         return Arrays.stream(methods)
                 .filter(m -> m.isAnnotationPresent(target))
                 .collect(Collectors.toList());
     }
 
-    private void reportError(String text, Throwable error, Method test) {
+    private void reportError(@NotNull String text, @Nullable Throwable error, @Nullable Method test) {
         ErrorMessage message = new ErrorMessage(text, error, test);
         errorMessages.add(message);
         protocol.add(message);
     }
 
-    private void reportWarning(String text, Method test) {
+    private void reportWarning(@NotNull String text, @Nullable Method test) {
         WarningMessage message = new WarningMessage(text, test);
         warningMessages.add(message);
         protocol.add(message);
     }
 
-    private void reportSuccess(String text, long time, Method test) {
+    private void reportSuccess(@NotNull String text, long time, @NotNull Method test) {
         SuccessMessage message = new SuccessMessage(text, time, test);
         successMessages.add(message);
         protocol.add(message);
     }
 
-    private void invokeAll(Object instance, List<Method> methods) throws Throwable {
+    private void invokeAll(@NotNull Object instance, @NotNull List<Method> methods) throws Throwable {
         try {
             for (Method method : methods) {
                 method.invoke(instance);
@@ -133,7 +136,7 @@ public class Tester {
 
     }
 
-    private void runTest(Object instance, Method method) {
+    private void runTest(@NotNull Object instance, @NotNull Method method) {
         Test annotation = method.getAnnotation(Test.class);
         if (!annotation.ignore().isEmpty()) {
             reportWarning("Test is ignored, reason:" + annotation.ignore(), method);
@@ -176,22 +179,27 @@ public class Tester {
         }
     }
 
+    @NotNull
     public List<SuccessMessage> getSuccessMessages() {
         return Collections.unmodifiableList(successMessages);
     }
 
+    @NotNull
     public List<WarningMessage> getWarningMessages() {
         return Collections.unmodifiableList(warningMessages);
     }
 
+    @NotNull
     public List<ErrorMessage> getErrorMessages() {
         return Collections.unmodifiableList(errorMessages);
     }
 
     /**
      * Return list of message, contains all type of messages, sorted by time
+     *
      * @return list of all messages
      */
+    @NotNull
     public List<Message> getProtocol() {
         return Collections.unmodifiableList(protocol);
     }

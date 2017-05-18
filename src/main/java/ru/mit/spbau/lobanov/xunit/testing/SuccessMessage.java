@@ -1,5 +1,7 @@
 package ru.mit.spbau.lobanov.xunit.testing;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.lang.reflect.Method;
 
 /**
@@ -11,16 +13,18 @@ public class SuccessMessage implements Message {
     private final Method test;
     private final long time;
 
-    SuccessMessage(String message, long time, Method test) {
+    SuccessMessage(@NotNull String message, long time, @NotNull Method test) {
         this.message = message;
         this.test = test;
         this.time = time;
     }
 
+    @NotNull
     public String getMessage() {
         return message;
     }
 
+    @NotNull
     public Method getTest() {
         return test;
     }
