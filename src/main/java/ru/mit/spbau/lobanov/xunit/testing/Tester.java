@@ -31,22 +31,15 @@ public class Tester {
 
 
     public Tester(@NotNull String testPackName) throws TestingException {
-        Class<?> testPack;
+        this(getClass(testPackName));
+    }
+
+    private static Class<?> getClass(String name) throws TestingException {
         try {
-            testPack = Class.forName(testPackName);
+            return Class.forName(name);
         } catch (ClassNotFoundException e) {
             throw new TestingException("Bad ClassLoader or wrong path: Class with tests wasn't found", e);
         }
-        this.testPack = testPack;
-        beforeClassMethods = filterMethods(testPack.getDeclaredMethods(), BeforeClass.class);
-        afterClassMethods = filterMethods(testPack.getDeclaredMethods(), AfterClass.class);
-        beforeMethods = filterMethods(testPack.getDeclaredMethods(), Before.class);
-        afterMethods = filterMethods(testPack.getDeclaredMethods(), After.class);
-        testMethods = filterMethods(testPack.getDeclaredMethods(), Test.class);
-        successMessages = Collections.emptyList();
-        warningMessages = Collections.emptyList();
-        errorMessages = Collections.emptyList();
-        protocol = Collections.emptyList();
     }
 
     public Tester(@NotNull Class<?> testPack) {
