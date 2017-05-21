@@ -1,6 +1,7 @@
 package ru.spbau.lobanov.liteVCS.logic;
 
 import org.junit.Test;
+import ru.spbau.lobanov.certification.logic.CertificationManager;
 import ru.spbau.lobanov.liteVCS.ConsoleWorker;
 import ru.spbau.lobanov.liteVCS.primitives.Header;
 import ru.spbau.lobanov.liteVCS.primitives.Stage;
@@ -27,7 +28,7 @@ public class ConsoleWorkerTest {
         when(dataManager.getStage()).thenReturn(stage);
         when(dataManager.isInitialized()).thenReturn(true);
 
-        ConsoleWorker consoleWorker = new ConsoleWorker(new LiteVCS(dataManager));
+        ConsoleWorker consoleWorker = new ConsoleWorker(new LiteVCS(dataManager), mock(CertificationManager.class));
         consoleWorker.execute("switch_branch", new String[]{"branch"});
     }
 
@@ -46,7 +47,7 @@ public class ConsoleWorkerTest {
         when(dataManager.getStage()).thenReturn(stage);
         when(dataManager.isInitialized()).thenReturn(true);
 
-        ConsoleWorker consoleWorker = new ConsoleWorker(new LiteVCS(dataManager));
+        ConsoleWorker consoleWorker = new ConsoleWorker(new LiteVCS(dataManager), mock(CertificationManager.class));
         consoleWorker.execute("switch_branch", new String[]{"branch"});
     }
 
@@ -65,7 +66,7 @@ public class ConsoleWorkerTest {
         when(dataManager.getStage()).thenReturn(stage);
         when(dataManager.isInitialized()).thenReturn(true);
 
-        ConsoleWorker consoleWorker = new ConsoleWorker(new LiteVCS(dataManager));
+        ConsoleWorker consoleWorker = new ConsoleWorker(new LiteVCS(dataManager), mock(CertificationManager.class));
         consoleWorker.execute("switch_branch", new String[]{"branch"});
     }
 
@@ -84,7 +85,7 @@ public class ConsoleWorkerTest {
         when(dataManager.getStage()).thenReturn(stage);
         when(dataManager.isInitialized()).thenReturn(true);
 
-        ConsoleWorker consoleWorker = new ConsoleWorker(new LiteVCS(dataManager));
+        ConsoleWorker consoleWorker = new ConsoleWorker(new LiteVCS(dataManager), mock(CertificationManager.class));
         consoleWorker.execute("remove_branch", new String[]{"master"});
     }
 
@@ -100,7 +101,7 @@ public class ConsoleWorkerTest {
         when(dataManager.getHeader()).thenReturn(header);
         when(dataManager.isInitialized()).thenReturn(true);
 
-        ConsoleWorker consoleWorker = new ConsoleWorker(new LiteVCS(dataManager));
+        ConsoleWorker consoleWorker = new ConsoleWorker(new LiteVCS(dataManager), mock(CertificationManager.class));
         consoleWorker.execute("merge_branch", new String[]{"master", "commit"});
     }
 
@@ -116,7 +117,7 @@ public class ConsoleWorkerTest {
         when(dataManager.getHeader()).thenReturn(header);
         when(dataManager.isInitialized()).thenReturn(true);
 
-        ConsoleWorker consoleWorker = new ConsoleWorker(new LiteVCS(dataManager));
+        ConsoleWorker consoleWorker = new ConsoleWorker(new LiteVCS(dataManager), mock(CertificationManager.class));
         consoleWorker.execute("create_branch", new String[]{"branch"});
     }
 }

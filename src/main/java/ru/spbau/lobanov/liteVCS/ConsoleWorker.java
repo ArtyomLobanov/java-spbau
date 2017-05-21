@@ -1,5 +1,8 @@
 package ru.spbau.lobanov.liteVCS;
 
+import ru.spbau.lobanov.certification.logic.CertificationManager;
+import ru.spbau.lobanov.certification.logic.CertificationManager.CertificateNotFountException;
+import ru.spbau.lobanov.certification.logic.CertificationParser;
 import ru.spbau.lobanov.liteVCS.logic.LiteVCS;
 import ru.spbau.lobanov.liteVCS.logic.LiteVCS.ConflictMergeException;
 import ru.spbau.lobanov.liteVCS.logic.LiteVCS.FileStatus;
@@ -13,6 +16,7 @@ import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.stream.Collectors;
 
 public class ConsoleWorker {
 
@@ -21,9 +25,11 @@ public class ConsoleWorker {
     private static final String BRANCH_PLACE_HOLDER = "Active branch: %s\n";
 
     private final LiteVCS liteVCS;
+    private final CertificationManager certificationManager;
 
-    public ConsoleWorker(LiteVCS liteVCS) {
+    public ConsoleWorker(LiteVCS liteVCS, CertificationManager certificationManager) {
         this.liteVCS = liteVCS;
+        this.certificationManager = certificationManager;
     }
 
     /**
@@ -35,12 +41,12 @@ public class ConsoleWorker {
      */
     private static void checkArguments(int size, String[] args) throws WrongNumberArgumentsException {
         if (args.length != size) {
-            throw new WrongNumberArgumentsException("Expected " + size + " arguments");
+            throw new WrongNumberArgumentsException("Expected " + size + " arguments. Use \"help *command*\"");
         }
     }
 
     public void execute(String command, String[] args) throws VersionControlSystemException,
-            WrongNumberArgumentsException, IOException, UnknownCommandException {
+            WrongNumberArgumentsException, IOException, UnknownCommandException, CertificateNotFountException {
         switch (command) {
             case "init":
                 checkArguments(0, args);
@@ -103,6 +109,17 @@ public class ConsoleWorker {
                 checkArguments(1, args);
                 liteVCS.hello(args[0]);
                 break;
+            case "help":
+                checkArguments(1, args);
+                if ("--all".equals(args[0])) {
+                    String message = certificationManager.getCommands()
+                            .stream()
+                            .collect(Collectors.joining("\n> ", "Available commands:\n> ", "\n"));
+                    System.out.println(message);
+                } else {
+                    System.out.println(certificationManager.getCertificate(args[0]));
+                }
+                break;
             default:
                 throw new UnknownCommandException("Unknown command: " + command);
         }
@@ -120,10 +137,17 @@ public class ConsoleWorker {
             System.out.println("Error: empty command");
             return;
         }
+        CertificationManager certificationManager;
+        try {
+            certificationManager = new CertificationManager("/commands.info");
+        } catch (CertificationParser.CertificationFormatException e) {
+            System.out.println("Broken jar: resource file wasn't found");
+            return;
+        }
         String[] functionArgs = new String[args.length - 1];
         System.arraycopy(args, 1, functionArgs, 0, functionArgs.length);
         String targetPath = Paths.get(System.getProperty("user.dir")).toString();
-        ConsoleWorker consoleWorker = new ConsoleWorker(new LiteVCS(targetPath));
+        ConsoleWorker consoleWorker = new ConsoleWorker(new LiteVCS(targetPath), certificationManager);
         try {
             consoleWorker.execute(args[0], functionArgs);
         } catch (ConflictMergeException e) {
