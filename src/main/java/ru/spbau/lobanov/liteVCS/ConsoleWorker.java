@@ -13,12 +13,12 @@ import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.logging.Logger;
 
 public class ConsoleWorker {
 
     private static final String COMMIT_PLACE_HOLDER = "\"%s\" by %s (node: %s)\n";
-    private static final String STATUS_PLACE_HOLDER = "        \"%s\"  status=%s\n";
+    private static final String STATUS_PLACE_HOLDER = "\t\t\"%s\"\tstatus=%s\n";
+    private static final String BRANCH_PLACE_HOLDER = "Active branch: %s\n";
 
     private final LiteVCS liteVCS;
 
@@ -64,6 +64,7 @@ public class ConsoleWorker {
                 break;
             case "status":
                 checkArguments(0, args);
+                System.out.printf(BRANCH_PLACE_HOLDER, liteVCS.getActiveBranchName());
                 printStatus(liteVCS.stageStatus(), liteVCS.workingCopyStatus());
                 break;
             case "create_branch":

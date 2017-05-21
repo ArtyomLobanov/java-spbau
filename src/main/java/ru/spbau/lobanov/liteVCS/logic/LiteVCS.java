@@ -12,7 +12,8 @@ import java.util.*;
 import java.util.logging.Logger;
 
 import static ru.spbau.lobanov.liteVCS.logic.LiteVCS.FileStatus.*;
-import static ru.spbau.lobanov.liteVCS.logic.LiteVCS.StageStatus.*;
+import static ru.spbau.lobanov.liteVCS.logic.LiteVCS.StageStatus.REMOVED;
+import static ru.spbau.lobanov.liteVCS.logic.LiteVCS.StageStatus.UPDATED;
 
 /**
  * Special class which provides all the main
@@ -142,8 +143,9 @@ public class LiteVCS {
      * Method which return list of node's parents sorted by increasing distance
      *
      * @param lengthLimit limit size of returned List
-     * @throws LostFileException   if file contained one of interesting object was corrupted
-     * @throws BrokenFileException if file contained one of interesting object was not found
+     * @throws LostFileException                 if file contained one of interesting object was corrupted
+     * @throws BrokenFileException               if file contained one of interesting object was not found
+     * @throws RepositoryNotInitializedException is repository wasn't found
      */
     @NotNull
     public List<Commit> history(@NotNull String lengthLimit) throws BrokenFileException, LostFileException,
@@ -195,10 +197,11 @@ public class LiteVCS {
      * Method removes record about given branch
      *
      * @param branchName name of branch to remove
-     * @throws LostFileException           if file contained one of interesting object was corrupted
-     * @throws BrokenFileException         if file contained one of interesting object was not found
-     * @throws RemoveActiveBranchException if user try to remove active(current) branch
-     * @throws UnknownBranchException      if branch with the same name wasn't found
+     * @throws LostFileException                 if file contained one of interesting object was corrupted
+     * @throws BrokenFileException               if file contained one of interesting object was not found
+     * @throws RemoveActiveBranchException       if user try to remove active(current) branch
+     * @throws UnknownBranchException            if branch with the same name wasn't found
+     * @throws RepositoryNotInitializedException is repository wasn't found
      */
     public void removeBranch(@NotNull String branchName) throws BrokenFileException, LostFileException,
             RemoveActiveBranchException, UnknownBranchException, RepositoryNotInitializedException {
@@ -457,9 +460,10 @@ public class LiteVCS {
      * Restore saved files from given ContentDescriptor
      *
      * @param descriptorID id of interesting description
-     * @throws LostFileException   if file contained one of interesting object was corrupted
-     * @throws BrokenFileException if file contained one of interesting object was not found
-     * @throws IOException         in case of some IO problems
+     * @throws LostFileException                 if file contained one of interesting object was corrupted
+     * @throws BrokenFileException               if file contained one of interesting object was not found
+     * @throws RepositoryNotInitializedException is repository wasn't found
+     * @throws IOException                       in case of some IO problems
      */
     public void checkout(@NotNull String descriptorID) throws IOException, BrokenFileException,
             LostFileException, RepositoryNotInitializedException {
@@ -475,10 +479,11 @@ public class LiteVCS {
     /**
      * This method remove all untracked files from working directory
      *
-     * @throws LostFileException   if file contained one of interesting object was corrupted
-     * @throws BrokenFileException if file contained one of interesting object was not found
-     * @throws IOException         in case of some IO problems
-     *                             {@link NonexistentFileDeletionException in case if some error occurred  during cleaning working copy};
+     * @throws LostFileException                 if file contained one of interesting object was corrupted
+     * @throws BrokenFileException               if file contained one of interesting object was not found
+     * @throws RepositoryNotInitializedException is repository wasn't found
+     * @throws IOException                       in case of some IO problems
+     * @throws NonexistentFileDeletionException  in case if some error occurred  during cleaning working copy
      */
     public void clean() throws IOException, BrokenFileException, LostFileException, NonexistentFileDeletionException,
             RepositoryNotInitializedException {
@@ -508,8 +513,9 @@ public class LiteVCS {
      * Return information about files in the stage area
      *
      * @return Map from File name to Status for every file, added to stage
-     * @throws LostFileException   if file contained one of interesting object was corrupted
-     * @throws BrokenFileException if file contained one of interesting object was not found
+     * @throws LostFileException                 if file contained one of interesting object was corrupted
+     * @throws BrokenFileException               if file contained one of interesting object was not found
+     * @throws RepositoryNotInitializedException is repository wasn't found
      */
     public Map<String, StageStatus> stageStatus() throws BrokenFileException, LostFileException,
             RepositoryNotInitializedException {
@@ -530,8 +536,9 @@ public class LiteVCS {
      * Return information about files in the working folder
      *
      * @return Map from File name to Status for every file belonging to folder or known in last commit
-     * @throws LostFileException   if file contained one of interesting object was corrupted
-     * @throws BrokenFileException if file contained one of interesting object was not found
+     * @throws LostFileException                 if file contained one of interesting object was corrupted
+     * @throws BrokenFileException               if file contained one of interesting object was not found
+     * @throws RepositoryNotInitializedException is repository wasn't found
      */
     public Map<String, FileStatus> workingCopyStatus() throws BrokenFileException, LostFileException, IOException,
             RepositoryNotInitializedException {
@@ -566,6 +573,20 @@ public class LiteVCS {
             }
         }
         return result;
+    }
+
+    /**
+     * Return name of current branch
+     *
+     * @return name of current branch
+     * @throws RepositoryNotInitializedException is repository wasn't found
+     * @throws LostFileException                 if file contained one of interesting object was corrupted
+     * @throws BrokenFileException               if file contained one of interesting object was not found
+     */
+    public String getActiveBranchName() throws RepositoryNotInitializedException,
+            BrokenFileException, LostFileException {
+        checkStatus();
+        return dataManager.getHeader().getCurrentBranchName();
     }
 
     /**
