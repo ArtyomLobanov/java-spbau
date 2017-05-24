@@ -9,7 +9,7 @@ import java.util.Scanner;
  * Execute commands from standard input
  */
 public class ServerConsoleApplication {
-    public static void main(@Nullable String[] args)  {
+    public static void main(@Nullable String[] args) {
         Server server = new Server(System.out);
         Scanner scanner = new Scanner(System.in);
         while (true) {

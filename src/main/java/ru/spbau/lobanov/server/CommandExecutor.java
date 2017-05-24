@@ -2,6 +2,7 @@ package ru.spbau.lobanov.server;
 
 import org.jetbrains.annotations.NotNull;
 import ru.spbau.lobanov.Connection;
+import ru.spbau.lobanov.Connection.Command;
 
 import java.io.*;
 import java.net.Socket;
@@ -10,9 +11,6 @@ import java.net.Socket;
  * Class which help Server to execute commands
  */
 public class CommandExecutor {
-
-    public static final int LIST_COMMAND = 1;
-    public static final int GET_COMMAND = 2;
 
     private final PrintStream errorStream;
 
@@ -29,9 +27,9 @@ public class CommandExecutor {
     void execute(@NotNull Socket socket) {
         try (Connection connection = new Connection(socket)) {
             int commandCode = connection.in.readInt();
-            if (commandCode == LIST_COMMAND) {
+            if (commandCode == Command.LIST_FILES.protocolCode) {
                 listCommand(connection.in.readUTF(), connection.out);
-            } else if (commandCode == GET_COMMAND) {
+            } else if (commandCode == Command.GET_FILE.protocolCode) {
                 getCommand(connection.in.readUTF(), connection.out);
             } else {
                 throw new WrongRequestFormatException("Unknown command code: " + commandCode);

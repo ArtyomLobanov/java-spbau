@@ -1,7 +1,9 @@
 package ru.spbau.lobanov;
 
 import com.google.common.io.Files;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 import org.mockito.Mockito;
 import ru.spbau.lobanov.client.Client;
 import ru.spbau.lobanov.client.FileDescriptor;
@@ -11,23 +13,26 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.io.PrintWriter;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 import static org.junit.Assert.*;
 
 public class Tests {
 
-    private static void createFile(String path) throws IOException {
-        File file = new File(path);
-        Files.createParentDirs(file);
-        Files.touch(file);
-        PrintWriter out = new PrintWriter(new File(path));
+    @Rule
+    public TemporaryFolder folder = new TemporaryFolder();
+
+    private String fillFile(String arg0, String... args) throws IOException {
+        Path path = Paths.get(arg0, args);
+        File file = folder.newFile(path.toString());
+        PrintWriter out = new PrintWriter(file);
         out.println("lgevbhkwubrldf" + Math.random());
         out.close();
+        return file.toPath().toString();
     }
 
     @Test
@@ -36,9 +41,11 @@ public class Tests {
         server.start(4000);
         Client client = new Client(Mockito.mock(PrintStream.class));
         client.setServer("localhost", 4000);
-        createFile(Paths.get("test","a.txt").toString());
-        createFile(Paths.get("test", "test2", "b.txt").toString());
-        FileDescriptor[] descriptors = client.listFiles("test");
+        File testFolder = folder.newFolder("test");
+        fillFile("test", "a.txt");
+        folder.newFolder("test", "test2");
+        fillFile("test", "test2", "b.txt");
+        FileDescriptor[] descriptors = client.listFiles(testFolder.getPath());
         assertEquals(2, descriptors.length);
         List<String> names = Arrays.stream(descriptors)
                 .map(FileDescriptor::getName)
@@ -57,10 +64,12 @@ public class Tests {
         server.start(4000);
         Client client = new Client(Mockito.mock(PrintStream.class));
         client.setServer("localhost", 4000);
-        createFile(Paths.get("test","a.txt").toString());
-        File file = client.getFile(Paths.get("test","a.txt").toString(),
-                Paths.get("test", "test2", "b.txt").toString());
-        File realFile = Paths.get("test","a.txt").toFile();
+        folder.newFolder("test");
+        String path = fillFile("test", "a.txt");
+        folder.newFolder("test", "test2");
+        String target = fillFile("test", "test2", "b.txt");
+        File file = client.getFile(path, target);
+        File realFile = Paths.get(path).toFile();
         assertEquals(realFile.length(), file.length());
         assertTrue(Files.equal(realFile, file));
     }

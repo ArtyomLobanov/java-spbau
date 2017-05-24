@@ -3,18 +3,20 @@ package ru.spbau.lobanov.client;
 import com.google.common.io.Files;
 import org.jetbrains.annotations.NotNull;
 import ru.spbau.lobanov.Connection;
-import ru.spbau.lobanov.server.CommandExecutor;
 
-import java.io.*;
-import java.net.Socket;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.PrintStream;
 
 /**
  * Class which provides an api to work as client
  */
 public class Client {
+
     private final PrintStream logStream;
     private String host;
-    private int port;
+    private int port = -1;
 
     public Client(PrintStream logStream) {
         this.logStream = logStream;
@@ -26,7 +28,7 @@ public class Client {
      * @param host server's host
      * @param port server's port
      */
-    public synchronized void setServer(@NotNull String host, int port) {
+    public void setServer(@NotNull String host, int port) {
         this.host = host;
         this.port = port;
         logStream.println("Server address updated");
@@ -35,7 +37,7 @@ public class Client {
     /**
      * Remove information about current server
      */
-    synchronized void clearServer() {
+    void clearServer() {
         host = null;
         port = -1;
         logStream.println("Server address cleared");
@@ -50,16 +52,12 @@ public class Client {
      * @throws ClientException if some problems with connection appeared
      */
     @NotNull
-    public synchronized FileDescriptor[] listFiles(@NotNull String path) throws ClientException {
-        if (host == null && port == -1) {
+    public FileDescriptor[] listFiles(@NotNull String path) throws ClientException {
+        if (host == null || port == -1) {
             throw new ClientException("Target server wasn't set");
         }
         FileDescriptor[] descriptors;
-        try (Socket socket = new Socket(host, port);
-             Connection connection = new Connection(socket)) {
-            connection.out.writeInt(CommandExecutor.LIST_COMMAND);
-            connection.out.writeUTF(path);
-            connection.out.flush();
+        try (Connection connection = Connection.openConnection(host, port, Connection.Command.LIST_FILES, path)) {
             int count = connection.in.readInt();
             descriptors = new FileDescriptor[count];
             for (int i = 0; i < count; i++) {
@@ -82,7 +80,7 @@ public class Client {
      * @throws ClientException if some problems with connection appeared
      */
     @NotNull
-    public synchronized File getFile(@NotNull String path, @NotNull String target) throws ClientException {
+    public File getFile(@NotNull String path, @NotNull String target) throws ClientException {
         if (host == null && port == -1) {
             throw new ClientException("Target server wasn't set");
         }
@@ -94,11 +92,7 @@ public class Client {
             throw new ClientException("Failed to create target file");
         }
         try (FileOutputStream fileStream = new FileOutputStream(file);
-             Socket socket = new Socket(host, port);
-             Connection connection = new Connection(socket)) {
-            connection.out.writeInt(CommandExecutor.GET_COMMAND);
-            connection.out.writeUTF(path);
-            connection.out.flush();
+             Connection connection = Connection.openConnection(host, port, Connection.Command.GET_FILE, path)) {
             long count = connection.in.readLong();
             if (count == 0) {
                 throw new ClientException("Server hasn't found requested file");

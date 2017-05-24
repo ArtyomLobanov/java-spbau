@@ -5,13 +5,11 @@ import ru.spbau.lobanov.client.ClientConsoleApplication;
 import ru.spbau.lobanov.gui.GraphicalApplication;
 import ru.spbau.lobanov.server.ServerConsoleApplication;
 
-import java.util.Arrays;
-
 /**
  * Class which run one of possible application
  */
 public class Starter {
-    public static void main(@NotNull String[] args)  {
+    public static void main(@NotNull String[] args) {
         if (args.length != 1) {
             System.out.println("Wrong number of arguments");
         }
