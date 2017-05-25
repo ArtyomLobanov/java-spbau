@@ -39,6 +39,17 @@ public class Connection implements AutoCloseable {
         }
     }
 
+    /**
+     * Create Connection and send request to sever to execute given command
+     *
+     * @param host host of server
+     * @param port port of server
+     * @param command command, which will be executed
+     * @param path argument of command
+     * @return Connection, ready to receive server response
+     * @throws IOException if connection failed
+     */
+    @NotNull
     public static Connection openConnection(@NotNull String host, int port, @NotNull Command command,
                                             @NotNull String path) throws IOException {
         Socket socket = new Socket(host, port);
