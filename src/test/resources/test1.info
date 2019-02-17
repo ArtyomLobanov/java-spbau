@@ -1,0 +1,6 @@
+@Command command message
+   @Tip tip
+   @Argument argument message2
+   @Tip tip2
+   @Tip tip 3
+   @Argument argument2 message2
