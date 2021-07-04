@@ -1,0 +1,23 @@
+group 'ru.spbau.mit.lobanov'
+version '1.0-SNAPSHOT'
+
+apply plugin: 'java'
+
+sourceCompatibility = 1.8
+
+repositories {
+    mavenCentral()
+}
+
+jar {
+    from {configurations.compile.collect { it.isDirectory() ? it : zipTree(it)} }
+    manifest { attributes 'Main-Class': 'ru.mit.spbau.lobanov.Game' }
+}
+
+dependencies {
+    testCompile group: 'junit', name: 'junit', version: '4.11'
+    // https://mvnrepository.com/artifact/com.google.guava/guava
+    compile group: 'com.google.guava', name: 'guava', version: '21.0'
+
+    compile group: 'org.jetbrains', name: 'annotations', version: '13.0'
+}
